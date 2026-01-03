@@ -1,4 +1,4 @@
-import { useEffect, Suspense } from 'react';
+import { useEffect } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useGameControls } from './hooks/useGameControls';
@@ -138,21 +138,22 @@ function App() {
         }}
       >
         {safeAppState === 'LOADING' && <LoadingScreen />}
-        {/* 3D Canvas - Direct entry to museum */}
-        {safeAppState === 'MUSEUM' && (
-          <div 
-            id="canvas-wrapper"
-            style={{ 
-              position: 'absolute', 
-              top: 0, 
-              left: 0, 
-              width: '100%', 
-              height: '100%',
-              zIndex: 1,
-              backgroundColor: '#ffffff'
-            }}
-          >
-            <Canvas
+        {/* 3D Canvas - Always mount but conditionally show */}
+        <div 
+          id="canvas-wrapper"
+          style={{ 
+            position: 'absolute', 
+            top: 0, 
+            left: 0, 
+            width: '100%', 
+            height: '100%',
+            zIndex: safeAppState === 'MUSEUM' ? 1 : -1,
+            backgroundColor: '#ffffff',
+            visibility: safeAppState === 'MUSEUM' ? 'visible' : 'hidden',
+            pointerEvents: safeAppState === 'MUSEUM' ? 'auto' : 'none'
+          }}
+        >
+          <Canvas
               shadows
               camera={{ position: [0, 2.1, 12], fov: 50 }}
               gl={{ 
@@ -263,12 +264,25 @@ function App() {
                   // Try to access R3F internal state to check reconciler
                   const r3fInternal = (gl as any)?._r3f;
                   const root = (gl as any)?._r3f?.root;
+                  const reconciler = (gl as any)?._r3f?.reconciler;
                   
                   console.log('R3F Reconciler Check:', {
                     r3fState: r3fInternal ? 'exists' : 'missing',
                     root: root ? 'exists' : 'missing',
-                    rootChildren: root?.current?.children?.length || 0
+                    rootCurrent: root?.current ? 'exists' : 'missing',
+                    rootChildren: root?.current?.children?.length || 0,
+                    reconciler: reconciler ? 'exists' : 'missing',
+                    reconcilerType: reconciler ? typeof reconciler : 'N/A'
                   });
+                  
+                  // If reconciler exists but root has no children, try to force update
+                  if (reconciler && root && root.current && root.current.children?.length === 0) {
+                    console.warn('Reconciler exists but root has no children - attempting to force update');
+                    // Try to access the reconciler's updateContainer method
+                    if (typeof reconciler.updateContainer === 'function') {
+                      console.log('Reconciler has updateContainer method - this is good');
+                    }
+                  }
                   
                   console.log('Scene after render:', {
                     children: scene.children.length,
@@ -399,12 +413,9 @@ function App() {
               }}
             >
               <color attach="background" args={['#ffffff']} />
-              <Suspense fallback={null}>
-                <Experience />
-              </Suspense>
+              {safeAppState === 'MUSEUM' && <Experience />}
             </Canvas>
           </div>
-        )}
 
         {/* UI Overlays - always render */}
         <HUD />

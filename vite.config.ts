@@ -3,7 +3,13 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react({
+      // Ensure JSX is properly transformed for R3F
+      jsxRuntime: 'automatic',
+      jsxImportSource: 'react'
+    })
+  ],
   resolve: {
     dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'scheduler', 'react-reconciler'],
     conditions: ['import', 'module', 'browser', 'default']
