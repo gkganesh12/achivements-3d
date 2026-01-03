@@ -102,47 +102,76 @@ function App() {
         {safeAppState === 'LOADING' && <LoadingScreen />}
         {/* 3D Canvas - Direct entry to museum */}
         {safeAppState === 'MUSEUM' && (
-          <div style={{ 
-            position: 'absolute', 
-            top: 0, 
-            left: 0, 
-            width: '100%', 
-            height: '100%',
-            zIndex: 1
-          }}>
+          <div 
+            id="canvas-wrapper"
+            style={{ 
+              position: 'absolute', 
+              top: 0, 
+              left: 0, 
+              width: '100%', 
+              height: '100%',
+              zIndex: 1,
+              backgroundColor: '#ffffff'
+            }}
+          >
             <Canvas
               shadows
               camera={{ position: [0, 2.1, 12], fov: 50 }}
               gl={{ 
                 antialias: true, 
                 alpha: false,
-                powerPreference: "high-performance"
+                powerPreference: "high-performance",
+                preserveDrawingBuffer: false,
+                stencil: false,
+                depth: true
               }}
               dpr={[1, 2]}
-              style={{ width: '100%', height: '100%' }}
+              style={{ 
+                width: '100%', 
+                height: '100%',
+                display: 'block',
+                backgroundColor: '#ffffff'
+              }}
               onCreated={({ camera, gl, scene }) => {
+                const canvas = gl.domElement;
                 console.log('Canvas created successfully', { 
                   cameraPosition: camera.position, 
                   cameraRotation: camera.rotation,
                   glContext: gl.getContext() ? 'valid' : 'invalid',
                   sceneChildren: scene.children.length,
-                  scene: scene
+                  canvasElement: canvas ? 'exists' : 'missing',
+                  canvasWidth: canvas?.width,
+                  canvasHeight: canvas?.height,
+                  canvasStyle: canvas ? window.getComputedStyle(canvas).display : 'N/A'
                 });
+                
+                // Verify canvas is in DOM
+                if (canvas && !document.body.contains(canvas)) {
+                  console.error('Canvas element not in DOM!');
+                }
+                
                 // Point camera at character initially
                 const characterPos = useStore.getState().characterPosition;
                 console.log('Character position:', characterPos);
                 camera.lookAt(characterPos.x, 1.1, characterPos.z);
                 console.log('Camera lookAt set to:', characterPos.x, 1.1, characterPos.z);
+                
                 // Ensure WebGL context is valid
-                if (!gl.getContext()) {
+                const context = gl.getContext();
+                if (!context) {
                   console.error('WebGL context is invalid');
+                } else {
+                  console.log('WebGL context valid:', context.getParameter(context.VERSION));
                 }
+                
                 // Log scene after a short delay to see if objects are added
                 setTimeout(() => {
                   console.log('Scene after render:', {
                     children: scene.children.length,
-                    childrenNames: scene.children.map(c => c.type || c.constructor.name)
+                    childrenNames: scene.children.map(c => c.type || c.constructor.name || 'unknown')
                   });
+                  // Force a render to ensure scene is visible
+                  gl.render(scene, camera);
                 }, 1000);
               }}
               onError={(error) => {
