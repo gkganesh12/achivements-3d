@@ -37,16 +37,19 @@ This creates an optimized production build in the `dist/` folder.
 ### Option 1: Vercel (Recommended)
 
 1. **Install Vercel CLI** (optional):
+
    ```bash
    npm i -g vercel
    ```
 
 2. **Deploy**:
+
    ```bash
    vercel
    ```
-   
+
    Or connect your GitHub repository to Vercel:
+
    - Go to [vercel.com](https://vercel.com)
    - Import your repository
    - Vercel will auto-detect Vite and deploy automatically
@@ -56,17 +59,20 @@ This creates an optimized production build in the `dist/` folder.
 ### Option 2: Netlify
 
 1. **Install Netlify CLI** (optional):
+
    ```bash
    npm i -g netlify-cli
    ```
 
 2. **Deploy**:
+
    ```bash
    npm run build
    netlify deploy --prod --dir=dist
    ```
-   
+
    Or use Netlify's web interface:
+
    - Go to [netlify.com](https://netlify.com)
    - Drag and drop the `dist/` folder
    - Or connect your GitHub repository
@@ -78,11 +84,13 @@ This creates an optimized production build in the `dist/` folder.
 ### Option 3: GitHub Pages
 
 1. **Install gh-pages**:
+
    ```bash
    npm install --save-dev gh-pages
    ```
 
 2. **Add to package.json**:
+
    ```json
    "scripts": {
      "deploy": "npm run build && gh-pages -d dist"
@@ -90,6 +98,7 @@ This creates an optimized production build in the `dist/` folder.
    ```
 
 3. **Deploy**:
+
    ```bash
    npm run deploy
    ```
@@ -102,15 +111,18 @@ This creates an optimized production build in the `dist/` folder.
 ### Option 4: Traditional Web Server
 
 1. **Build the application**:
+
    ```bash
    npm run build
    ```
 
 2. **Upload `dist/` folder** to your web server:
+
    - Upload all files from `dist/` to your server's public directory
    - Ensure your server is configured to serve `index.html` for all routes (SPA routing)
 
 3. **Server Configuration** (Apache `.htaccess`):
+
    ```apache
    <IfModule mod_rewrite.c>
      RewriteEngine On
@@ -134,6 +146,7 @@ This creates an optimized production build in the `dist/` folder.
 ### Required Files
 
 Ensure these files are in the `public/` directory:
+
 - `stan.png` - Stanford University logo
 - `dre.png` - Drexel University logo
 - Any additional document images (if using local files)
@@ -141,6 +154,7 @@ Ensure these files are in the `public/` directory:
 ### External Links Configuration
 
 Update `src/data/exhibits.ts` with your actual:
+
 - Google Drive links for certificates
 - GitHub repository links
 - ImgBB or other image hosting links
@@ -150,6 +164,7 @@ Update `src/data/exhibits.ts` with your actual:
 ### Production Build
 
 The production build includes:
+
 - Code minification
 - Tree shaking
 - Asset optimization
@@ -167,11 +182,20 @@ The production build includes:
 ### Common Issues
 
 1. **Blank Page After Deployment**:
-   - Check browser console for errors
-   - Ensure base path is correct in `vite.config.ts`
-   - Verify all assets are in `dist/` folder
+
+   - **Check browser console** (F12) for JavaScript errors
+   - **Verify deployment configuration**:
+     - For Netlify: Ensure `public/_redirects` file exists
+     - For Vercel: Ensure `vercel.json` file exists
+     - For GitHub Pages: May need to set `base` in `vite.config.ts` if deploying to subdirectory
+   - **Check network tab** for failed asset requests (404 errors)
+   - **Verify build output**: Ensure `dist/` folder contains `index.html` and all assets
+   - **Clear browser cache** and hard refresh (Ctrl+Shift+R or Cmd+Shift+R)
+   - **Check error boundary**: The app now includes error boundaries that will show error messages
+   - **Verify environment**: Ensure you're using a modern browser with WebGL support
 
 2. **3D Models Not Loading**:
+
    - Check network tab for failed requests
    - Verify file paths are correct
    - Ensure CORS is properly configured
@@ -213,7 +237,7 @@ name: Deploy
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   deploy:
@@ -222,7 +246,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: "18"
       - run: npm install
       - run: npm run build
       - name: Deploy to Vercel
@@ -236,6 +260,7 @@ jobs:
 ## Support
 
 For issues or questions:
+
 - Check the repository issues
 - Review the code documentation
 - Contact the maintainer
@@ -243,4 +268,3 @@ For issues or questions:
 ---
 
 **Last Updated**: January 2025
-
