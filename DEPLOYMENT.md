@@ -110,7 +110,58 @@ This creates an optimized production build in the `dist/` folder.
    - Source: `gh-pages` branch
    - Path: `/ (root)`
 
-### Option 4: Traditional Web Server
+### Option 4: Render
+
+1. **Create a Render Account**:
+
+   - Go to [render.com](https://render.com)
+   - Sign up or log in with your GitHub account
+
+2. **Create a New Static Site**:
+
+   - Click "New +" → "Static Site"
+   - Connect your GitHub repository: `gkganesh12/achivements-3d`
+   - Select the branch: `main`
+
+3. **Configure Build Settings**:
+
+   - **Name**: `achivements-3d` (or your preferred name)
+   - **Build Command**: `npm install && npm run build`
+   - **Publish Directory**: `dist`
+   - **Node Version**: `18` or `20` (Render will auto-detect)
+
+4. **Environment Variables** (if needed):
+
+   - Usually not required for this project
+   - Add any custom environment variables if you have them
+
+5. **Deploy**:
+
+   - Click "Create Static Site"
+   - Render will automatically:
+     - Clone your repository
+     - Install dependencies
+     - Run the build command
+     - Deploy the `dist/` folder
+
+6. **Automatic Deployments**:
+
+   - Every push to the `main` branch will trigger a new deployment
+   - Render provides a free SSL certificate automatically
+   - Your site will be available at: `https://your-app-name.onrender.com`
+
+7. **Custom Domain** (Optional):
+
+   - Go to your site settings
+   - Click "Custom Domain"
+   - Add your domain and follow DNS configuration instructions
+
+8. **SPA Routing Configuration**:
+   - Render automatically handles SPA routing for static sites
+   - All routes will serve `index.html` correctly
+   - No additional configuration needed
+
+### Option 5: Traditional Web Server
 
 1. **Build the application**:
 
