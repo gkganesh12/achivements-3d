@@ -55,12 +55,13 @@ export default defineConfig({
       },
       // Preserve R3F reconciler - don't tree-shake it
       treeshake: {
-        preset: 'smallest',
         moduleSideEffects: (id) => {
-          // Preserve R3F and reconciler modules
-          return id.includes('@react-three/fiber') || 
-                 id.includes('react-reconciler') ||
-                 id.includes('@react-three/drei');
+          // Preserve R3F and reconciler modules - be very aggressive
+          if (id.includes('@react-three/fiber')) return true;
+          if (id.includes('react-reconciler')) return true;
+          if (id.includes('@react-three/drei')) return true;
+          // Also preserve any module that might be needed by R3F
+          return false;
         }
       }
     },

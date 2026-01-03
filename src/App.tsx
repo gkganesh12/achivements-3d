@@ -69,8 +69,13 @@ function Experience() {
       
       // Log detailed state for debugging
       if (!r3fState) {
+        const glKeys = Object.keys(gl).filter(k => k.startsWith('_'));
         console.warn('R3F reconciler check: _r3f is missing on gl object');
-        console.warn('gl object keys:', Object.keys(gl).filter(k => k.startsWith('_')));
+        console.warn('gl object keys starting with _:', glKeys);
+        console.warn('gl object type:', gl.constructor?.name || 'unknown');
+        console.warn('gl object is WebGLRenderer?', gl instanceof THREE.WebGLRenderer);
+        // Check if R3F is actually loaded
+        console.warn('R3F Canvas imported?', typeof Canvas !== 'undefined');
       } else if (!reconciler) {
         console.warn('R3F reconciler check: _r3f exists but reconciler is missing');
         console.warn('_r3f keys:', Object.keys(r3fState));
@@ -294,7 +299,9 @@ function App() {
                   r3fState: r3fState ? 'initialized' : 'not initialized',
                   hasRoot: root ? 'yes' : 'no',
                   hasReconciler: reconciler ? 'yes' : 'no',
-                  glKeys: Object.keys(gl).filter(k => k.startsWith('_'))
+                  glKeys: Object.keys(gl).filter(k => k.startsWith('_')),
+                  glKeysFull: Object.keys(gl).slice(0, 20), // First 20 keys for debugging
+                  glConstructor: gl.constructor?.name || 'unknown'
                 });
                 
                 if (!r3fState) {
@@ -305,6 +312,19 @@ function App() {
                   console.error('2. React version mismatch');
                   console.error('3. Canvas children not rendering properly');
                   console.error('4. Production build issue with R3F initialization');
+                  
+                  // Verify R3F is actually imported
+                  console.error('R3F Canvas type:', typeof Canvas);
+                  console.error('R3F useThree type:', typeof useThree);
+                  
+                  // Check if gl is actually a WebGLRenderer
+                  console.error('gl is WebGLRenderer?', gl instanceof THREE.WebGLRenderer);
+                  console.error('gl constructor:', gl.constructor?.name);
+                  
+                  // Check all gl properties
+                  const allGlKeys = Object.keys(gl);
+                  console.error('All gl keys (first 30):', allGlKeys.slice(0, 30));
+                  console.error('gl keys starting with _:', allGlKeys.filter(k => k.startsWith('_')));
                 }
                 
                 // Verify canvas is in DOM
