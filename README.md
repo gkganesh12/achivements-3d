@@ -97,7 +97,7 @@ netlify deploy --prod --dir=dist
 
 ## 🛠️ Technologies Used
 
-- **React 19.2.0** - UI framework
+- **React 18.3.1** - UI framework
 - **Three.js 0.182.0** - 3D graphics library
 - **React Three Fiber 9.5.0** - React renderer for Three.js
 - **React Three Drei 10.7.7** - Useful helpers for R3F
