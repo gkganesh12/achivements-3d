@@ -1,31 +1,20 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useGameControls } from './hooks/useGameControls';
 import { useStore } from './store/useStore';
 import { CameraController } from './components/CameraController';
+import { Museum } from './scenes/Museum';
 import { HUD } from './components/HUD';
 import { LoadingScreen } from './scenes/LoadingScreen';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import './App.css';
-
-// Lazy load Museum component for code splitting with error handling
-const Museum = lazy(() => 
-  import('./scenes/Museum')
-    .then(module => ({ default: module.Museum }))
-    .catch(error => {
-      console.error('Failed to load Museum component:', error);
-      throw error;
-    })
-);
 
 function Experience() {
   return (
     <>
       <CameraController />
       <ErrorBoundary>
-        <Suspense fallback={null}>
-          <Museum />
-        </Suspense>
+        <Museum />
       </ErrorBoundary>
       <fog attach="fog" args={['#ffffff', 25, 60]} />
     </>

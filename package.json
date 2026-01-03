@@ -21,7 +21,15 @@
   },
   "overrides": {
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "react/jsx-runtime": "18.3.1",
+    "react/jsx-dev-runtime": "18.3.1"
+  },
+  "resolutions": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react/jsx-runtime": "18.3.1",
+    "react/jsx-dev-runtime": "18.3.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

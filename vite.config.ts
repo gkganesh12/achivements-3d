@@ -11,16 +11,18 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Split node_modules into separate chunks
+          // CRITICAL: Keep React together - don't split it
+          // This prevents multiple React instances
           if (id.includes('node_modules')) {
+            // Keep all React-related code in one chunk
+            if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) {
+              return 'react-vendor';
+            }
             if (id.includes('three')) {
               return 'three-vendor';
             }
             if (id.includes('@react-three')) {
               return 'react-three-vendor';
-            }
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'react-vendor';
             }
             if (id.includes('zustand')) {
               return 'utils-vendor';
