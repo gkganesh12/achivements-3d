@@ -1,39 +1,20 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { fileURLToPath, URL } from 'node:url'
 
 // https://vite.dev/config/
 export default defineConfig({
   base: './',
   plugins: [react()],
   resolve: {
-    dedupe: ['react', 'react-dom', 'react/jsx-runtime']
+    dedupe: ['react', 'react-dom', 'react/jsx-runtime'],
+    alias: {
+      react: fileURLToPath(new URL('./node_modules/react', import.meta.url)),
+      'react-dom': fileURLToPath(new URL('./node_modules/react-dom', import.meta.url)),
+      'react/jsx-runtime': fileURLToPath(new URL('./node_modules/react/jsx-runtime', import.meta.url))
+    }
   },
   build: {
-    rollupOptions: {
-      output: {
-        manualChunks: (id) => {
-          // CRITICAL: Keep React together - don't split it
-          // This prevents multiple React instances
-          if (id.includes('node_modules')) {
-            // Keep all React-related code in one chunk
-            if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) {
-              return 'react-vendor';
-            }
-            if (id.includes('three')) {
-              return 'three-vendor';
-            }
-            if (id.includes('@react-three')) {
-              return 'react-three-vendor';
-            }
-            if (id.includes('zustand')) {
-              return 'utils-vendor';
-            }
-            // Other node_modules
-            return 'vendor';
-          }
-        }
-      }
-    },
     chunkSizeWarningLimit: 1500
   }
 })
