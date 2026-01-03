@@ -29,6 +29,10 @@ export default defineConfig({
         manualChunks: (id) => {
           // CRITICAL: Keep ALL React code in ONE chunk to prevent multiple instances
           if (id.includes('node_modules')) {
+            // Keep @react-three packages with React to ensure reconciler works
+            if (id.includes('@react-three')) {
+              return 'vendor';
+            }
             // Separate three.js into its own chunk (large library)
             if (id.includes('three') && !id.includes('@react-three')) {
               return 'three-vendor';
@@ -48,6 +52,9 @@ export default defineConfig({
     // Ensure source maps are disabled for production (can cause issues)
     sourcemap: false,
     // Minify for production
-    minify: 'esbuild'
+    minify: 'esbuild',
+    // Preserve module structure for R3F
+    target: 'esnext',
+    modulePreload: false
   }
 })
