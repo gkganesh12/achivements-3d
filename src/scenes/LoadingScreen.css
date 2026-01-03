@@ -1,0 +1,78 @@
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.loading-content {
+    text-align: center;
+}
+
+.loading-name {
+    font-family: 'Arial', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 300;
+    color: #000000;
+    letter-spacing: 0.3em;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+}
+
+.loading-subtitle {
+    font-family: 'Arial', sans-serif;
+    font-size: 0.75rem;
+    color: #1a1a1a;
+    letter-spacing: 0.4em;
+    margin-bottom: 3rem;
+    text-transform: uppercase;
+}
+
+.loader-container {
+    width: 200px;
+    height: 2px;
+    background: #e0e0e0;
+    margin: 0 auto 1rem;
+    overflow: hidden;
+}
+
+.loader-bar {
+    height: 100%;
+    background: #000000;
+    transition: width 0.05s ease-out;
+}
+
+.loader-counter {
+    font-family: 'Arial', sans-serif;
+    font-size: 0.7rem;
+    color: #1a1a1a;
+    letter-spacing: 0.2em;
+}
+
+.flash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #ffffff;
+    z-index: 1000;
+    animation: flashOut 0.4s ease-out forwards;
+}
+
+@keyframes flashOut {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        pointer-events: none;
+    }
+}
