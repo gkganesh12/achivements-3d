@@ -16,7 +16,8 @@ function Experience() {
       <ErrorBoundary>
         <Museum />
       </ErrorBoundary>
-      <fog attach="fog" args={['#ffffff', 25, 60]} />
+      {/* Reduced fog density to ensure visibility */}
+      <fog attach="fog" args={['#ffffff', 40, 100]} />
     </>
   );
 }
@@ -96,21 +97,46 @@ function App() {
         {safeAppState === 'LOADING' && <LoadingScreen />}
         {/* 3D Canvas - Direct entry to museum */}
         {safeAppState === 'MUSEUM' && (
-          <Canvas
-            shadows
-            camera={{ position: [0, 2.1, 12], fov: 50 }}
-            gl={{ antialias: true, alpha: false }}
-            dpr={[1, 2]}
-            onCreated={({ camera }) => {
-              console.log('Canvas created successfully');
-              // Point camera at character initially
-              const characterPos = useStore.getState().characterPosition;
-              camera.lookAt(characterPos.x, 1.1, characterPos.z);
-            }}
-          >
-            <color attach="background" args={['#ffffff']} />
-            <Experience />
-          </Canvas>
+          <div style={{ 
+            position: 'absolute', 
+            top: 0, 
+            left: 0, 
+            width: '100%', 
+            height: '100%',
+            zIndex: 1
+          }}>
+            <Canvas
+              shadows
+              camera={{ position: [0, 2.1, 12], fov: 50 }}
+              gl={{ 
+                antialias: true, 
+                alpha: false,
+                powerPreference: "high-performance"
+              }}
+              dpr={[1, 2]}
+              style={{ width: '100%', height: '100%' }}
+              onCreated={({ camera, gl, scene }) => {
+                console.log('Canvas created successfully', { 
+                  cameraPosition: camera.position, 
+                  glContext: gl.getContext() ? 'valid' : 'invalid',
+                  sceneChildren: scene.children.length
+                });
+                // Point camera at character initially
+                const characterPos = useStore.getState().characterPosition;
+                camera.lookAt(characterPos.x, 1.1, characterPos.z);
+                // Ensure WebGL context is valid
+                if (!gl.getContext()) {
+                  console.error('WebGL context is invalid');
+                }
+              }}
+              onError={(error) => {
+                console.error('Canvas error:', error);
+              }}
+            >
+              <color attach="background" args={['#ffffff']} />
+              <Experience />
+            </Canvas>
+          </div>
         )}
 
         {/* UI Overlays - always render */}
