@@ -23,12 +23,7 @@ function Experience() {
     <>
       <CameraController />
       <ErrorBoundary>
-        <Suspense fallback={
-          <mesh>
-            <boxGeometry args={[1, 1, 1]} />
-            <meshStandardMaterial color="#cccccc" />
-          </mesh>
-        }>
+        <Suspense fallback={null}>
           <Museum />
         </Suspense>
       </ErrorBoundary>
@@ -42,31 +37,49 @@ function App() {
   useGameControls();
   const { appState } = useStore();
 
+  // Safety timeout - if loading takes too long, force transition to MUSEUM
+  useEffect(() => {
+    if (appState === 'LOADING') {
+      const timeout = setTimeout(() => {
+        console.warn('Loading timeout - forcing transition to MUSEUM');
+        useStore.getState().setAppState('MUSEUM');
+      }, 5000); // 5 second safety timeout
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [appState]);
+
   // Add error logging for debugging
   useEffect(() => {
     console.log('App state:', appState);
     
     // Log any unhandled errors
-    window.addEventListener('error', (event) => {
+    const errorHandler = (event: ErrorEvent) => {
       console.error('Global error:', event.error);
-    });
+    };
     
-    window.addEventListener('unhandledrejection', (event) => {
+    const rejectionHandler = (event: PromiseRejectionEvent) => {
       console.error('Unhandled promise rejection:', event.reason);
-    });
+    };
+    
+    window.addEventListener('error', errorHandler);
+    window.addEventListener('unhandledrejection', rejectionHandler);
     
     return () => {
-      window.removeEventListener('error', () => {});
-      window.removeEventListener('unhandledrejection', () => {});
+      window.removeEventListener('error', errorHandler);
+      window.removeEventListener('unhandledrejection', rejectionHandler);
     };
   }, [appState]);
 
+  // Always render something - fallback to loading if state is invalid
+  const safeAppState = appState === 'LOADING' || appState === 'MUSEUM' ? appState : 'LOADING';
+
   return (
     <ErrorBoundary>
-      <div className="app-container">
-        {appState === 'LOADING' && <LoadingScreen />}
+      <div className="app-container" style={{ width: '100%', height: '100%', position: 'relative' }}>
+        {safeAppState === 'LOADING' && <LoadingScreen />}
         {/* 3D Canvas - Direct entry to museum */}
-        {appState === 'MUSEUM' && (
+        {safeAppState === 'MUSEUM' && (
           <Canvas
             shadows
             camera={{ position: [0, 2.1, 12], fov: 50 }}
@@ -83,7 +96,7 @@ function App() {
           </Canvas>
         )}
 
-        {/* UI Overlays */}
+        {/* UI Overlays - always render */}
         <HUD />
       </div>
     </ErrorBoundary>
