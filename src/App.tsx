@@ -12,6 +12,11 @@ import './App.css';
 function Experience() {
   return (
     <>
+      {/* Test: Add a visible red box to verify rendering works */}
+      <mesh position={[0, 2, 0]}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial color="red" />
+      </mesh>
       <CameraController />
       <ErrorBoundary>
         <Museum />
@@ -118,16 +123,27 @@ function App() {
               onCreated={({ camera, gl, scene }) => {
                 console.log('Canvas created successfully', { 
                   cameraPosition: camera.position, 
+                  cameraRotation: camera.rotation,
                   glContext: gl.getContext() ? 'valid' : 'invalid',
-                  sceneChildren: scene.children.length
+                  sceneChildren: scene.children.length,
+                  scene: scene
                 });
                 // Point camera at character initially
                 const characterPos = useStore.getState().characterPosition;
+                console.log('Character position:', characterPos);
                 camera.lookAt(characterPos.x, 1.1, characterPos.z);
+                console.log('Camera lookAt set to:', characterPos.x, 1.1, characterPos.z);
                 // Ensure WebGL context is valid
                 if (!gl.getContext()) {
                   console.error('WebGL context is invalid');
                 }
+                // Log scene after a short delay to see if objects are added
+                setTimeout(() => {
+                  console.log('Scene after render:', {
+                    children: scene.children.length,
+                    childrenNames: scene.children.map(c => c.type || c.constructor.name)
+                  });
+                }, 1000);
               }}
               onError={(error) => {
                 console.error('Canvas error:', error);
