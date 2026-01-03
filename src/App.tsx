@@ -1,4 +1,4 @@
-import { Suspense, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useGameControls } from './hooks/useGameControls';
 import { useStore } from './store/useStore';
