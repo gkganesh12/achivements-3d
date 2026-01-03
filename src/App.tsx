@@ -13,11 +13,14 @@ import './App.css';
 function Experience() {
   return (
     <>
-      {/* Test: Add a visible red box to verify rendering works */}
+      {/* Test: Add a very visible red box with light to verify rendering works */}
       <mesh position={[0, 2, 0]}>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color="red" />
+        <boxGeometry args={[2, 2, 2]} />
+        <meshStandardMaterial color="red" emissive="red" emissiveIntensity={0.5} />
       </mesh>
+      {/* Add a bright light to ensure visibility */}
+      <pointLight position={[0, 5, 0]} intensity={2} color="#ffffff" />
+      <ambientLight intensity={1} />
       <CameraController />
       <ErrorBoundary>
         <Museum />
@@ -136,6 +139,28 @@ function App() {
               }}
               onCreated={({ camera, gl, scene }) => {
                 const canvas = gl.domElement;
+                
+                // CRITICAL: Ensure canvas is visible and has proper dimensions
+                if (canvas) {
+                  canvas.style.display = 'block';
+                  canvas.style.width = '100%';
+                  canvas.style.height = '100%';
+                  canvas.style.position = 'absolute';
+                  canvas.style.top = '0';
+                  canvas.style.left = '0';
+                  
+                  // Force canvas to be visible
+                  const computedStyle = window.getComputedStyle(canvas);
+                  console.log('Canvas computed styles:', {
+                    display: computedStyle.display,
+                    visibility: computedStyle.visibility,
+                    opacity: computedStyle.opacity,
+                    width: computedStyle.width,
+                    height: computedStyle.height,
+                    zIndex: computedStyle.zIndex
+                  });
+                }
+                
                 console.log('Canvas created successfully', { 
                   cameraPosition: camera.position, 
                   cameraRotation: camera.rotation,
@@ -144,12 +169,23 @@ function App() {
                   canvasElement: canvas ? 'exists' : 'missing',
                   canvasWidth: canvas?.width,
                   canvasHeight: canvas?.height,
-                  canvasStyle: canvas ? window.getComputedStyle(canvas).display : 'N/A'
+                  canvasParent: canvas?.parentElement?.id || 'no parent'
                 });
                 
                 // Verify canvas is in DOM
-                if (canvas && !document.body.contains(canvas)) {
-                  console.error('Canvas element not in DOM!');
+                if (canvas) {
+                  if (!document.body.contains(canvas)) {
+                    console.error('Canvas element not in DOM!');
+                  } else {
+                    console.log('Canvas is in DOM, parent:', canvas.parentElement?.tagName);
+                  }
+                  
+                  // Ensure canvas is not hidden
+                  if (canvas.style.display === 'none' || canvas.style.visibility === 'hidden') {
+                    console.warn('Canvas is hidden! Fixing...');
+                    canvas.style.display = 'block';
+                    canvas.style.visibility = 'visible';
+                  }
                 }
                 
                 // Point camera at character initially
@@ -163,8 +199,7 @@ function App() {
                 if (!context) {
                   console.error('WebGL context is invalid - Canvas will not render');
                   // Try to get WebGL2 context as fallback
-                  const canvas = gl.domElement;
-                  const webgl2Context = canvas.getContext('webgl2');
+                  const webgl2Context = canvas?.getContext('webgl2');
                   if (webgl2Context) {
                     console.log('WebGL2 context available as fallback');
                   } else {
@@ -180,6 +215,8 @@ function App() {
                   const testProgram = context.createProgram();
                   if (!testProgram) {
                     console.error('WebGL cannot create programs - context may be lost');
+                  } else {
+                    console.log('WebGL can create programs - context is functional');
                   }
                 }
                 
@@ -199,6 +236,10 @@ function App() {
                       height: gl.domElement.height,
                       pixelRatio: gl.getPixelRatio()
                     });
+                    
+                    // Force a render
+                    gl.render(scene, camera);
+                    console.log('Forced render completed');
                   }
                 }, 1000);
               }}
