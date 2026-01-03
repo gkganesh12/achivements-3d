@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useGameControls } from './hooks/useGameControls';
@@ -14,16 +14,22 @@ function Experience() {
   console.log('Experience component rendering - this should appear in console');
   
   // Use useThree to access scene directly and ensure objects are added
-  const { scene } = useThree();
+  const { scene, invalidate } = useThree();
   
   useEffect(() => {
     console.log('Experience useEffect - scene children:', scene.children.length);
     
-    // If scene is empty, manually add objects as fallback
-    if (scene.children.length === 0) {
-      console.warn('Scene is empty in Experience - R3F reconciliation may have failed');
-    }
-  }, [scene]);
+    // Force R3F to update/render
+    invalidate();
+    
+    // Check again after a short delay
+    setTimeout(() => {
+      console.log('Experience - scene children after delay:', scene.children.length);
+      if (scene.children.length === 0) {
+        console.error('R3F reconciliation failed - scene still empty after Experience render');
+      }
+    }, 500);
+  }, [scene, invalidate]);
   
   return (
     <>
@@ -290,14 +296,9 @@ function App() {
               }}
             >
               <color attach="background" args={['#ffffff']} />
-              {/* Ensure Experience renders - add direct children first */}
-              <mesh position={[0, 2, 0]}>
-                <boxGeometry args={[2, 2, 2]} />
-                <meshStandardMaterial color="red" emissive="red" emissiveIntensity={0.5} />
-              </mesh>
-              <pointLight position={[0, 5, 0]} intensity={2} color="#ffffff" />
-              <ambientLight intensity={1} />
-              <Experience />
+              <Suspense fallback={null}>
+                <Experience />
+              </Suspense>
             </Canvas>
           </div>
         )}
