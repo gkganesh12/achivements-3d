@@ -45,7 +45,7 @@ function R3FStateChecker() {
 
 function Experience() {
   const { appState } = useStore();
-  const { gl } = useThree();
+  const { gl } = useThree(); // Must be called unconditionally
   const [reconcilerReady, setReconcilerReady] = useState(false);
   
   console.log('Experience component rendering - appState:', appState);
@@ -54,11 +54,28 @@ function Experience() {
   useEffect(() => {
     const checkReconciler = () => {
       const r3fState = (gl as any)?._r3f;
-      if (r3fState && r3fState.reconciler) {
-        console.log('R3F reconciler is ready!');
+      const reconciler = (gl as any)?._r3f?.reconciler;
+      const root = (gl as any)?._r3f?.root;
+      
+      if (r3fState && reconciler) {
+        console.log('R3F reconciler is ready!', {
+          hasReconciler: !!reconciler,
+          hasRoot: !!root,
+          rootCurrent: root?.current ? 'exists' : 'missing'
+        });
         setReconcilerReady(true);
         return true;
       }
+      
+      // Log detailed state for debugging
+      if (!r3fState) {
+        console.warn('R3F reconciler check: _r3f is missing on gl object');
+        console.warn('gl object keys:', Object.keys(gl).filter(k => k.startsWith('_')));
+      } else if (!reconciler) {
+        console.warn('R3F reconciler check: _r3f exists but reconciler is missing');
+        console.warn('_r3f keys:', Object.keys(r3fState));
+      }
+      
       return false;
     };
     
@@ -74,15 +91,17 @@ function Experience() {
       }
     }, 100);
     
-    // Timeout after 2 seconds
+    // Timeout after 3 seconds (increased from 2)
     const timeout = setTimeout(() => {
       clearInterval(interval);
       if (!reconcilerReady) {
-        console.error('R3F reconciler failed to initialize after 2 seconds');
+        console.error('R3F reconciler failed to initialize after 3 seconds');
+        console.error('This is a critical issue - R3F Canvas may not be working properly');
+        console.error('Attempting to render anyway - reconciler may initialize later');
         // Still try to render - might work anyway
         setReconcilerReady(true);
       }
-    }, 2000);
+    }, 3000);
     
     return () => {
       clearInterval(interval);
@@ -90,12 +109,18 @@ function Experience() {
     };
   }, [gl, reconcilerReady]);
   
-  // Always render something minimal to ensure reconciler initializes
+  // Always render at least one mesh to ensure reconciler initializes
+  // The reconciler needs actual geometry to initialize, not just lights
   // Only render full content when in MUSEUM state AND reconciler is ready
   if (appState !== 'MUSEUM' || !reconcilerReady) {
-    // Render minimal content to ensure reconciler initializes
+    // Render minimal but real geometry to force reconciler initialization
     return (
       <>
+        {/* Invisible mesh to force reconciler initialization */}
+        <mesh position={[0, -100, 0]} visible={false}>
+          <boxGeometry args={[0.1, 0.1, 0.1]} />
+          <meshBasicMaterial transparent opacity={0} />
+        </mesh>
         <ambientLight intensity={0.1} />
       </>
     );
@@ -254,6 +279,9 @@ function App() {
                 
                 // Check if R3F reconciler is available
                 const r3fState = (gl as any)?._r3f;
+                const root = (gl as any)?._r3f?.root;
+                const reconciler = (gl as any)?._r3f?.reconciler;
+                
                 console.log('Canvas created successfully', { 
                   cameraPosition: camera.position, 
                   cameraRotation: camera.rotation,
@@ -263,8 +291,21 @@ function App() {
                   canvasWidth: canvas?.width,
                   canvasHeight: canvas?.height,
                   canvasParent: canvas?.parentElement?.id || 'no parent',
-                  r3fState: r3fState ? 'initialized' : 'not initialized'
+                  r3fState: r3fState ? 'initialized' : 'not initialized',
+                  hasRoot: root ? 'yes' : 'no',
+                  hasReconciler: reconciler ? 'yes' : 'no',
+                  glKeys: Object.keys(gl).filter(k => k.startsWith('_'))
                 });
+                
+                if (!r3fState) {
+                  console.error('CRITICAL: R3F reconciler state (_r3f) is missing!');
+                  console.error('This means R3F Canvas did not initialize the reconciler');
+                  console.error('Possible causes:');
+                  console.error('1. R3F bundle is corrupted or not loaded');
+                  console.error('2. React version mismatch');
+                  console.error('3. Canvas children not rendering properly');
+                  console.error('4. Production build issue with R3F initialization');
+                }
                 
                 // Verify canvas is in DOM
                 if (canvas) {
