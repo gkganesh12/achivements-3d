@@ -26,7 +26,7 @@ export const Character = () => {
   const leftLegRef = useRef<THREE.Mesh>(null);
   const rightLegRef = useRef<THREE.Mesh>(null);
   
-  const { characterPosition, keysPressed, setCharacterPosition, setCharacterRotation, isAmplified, isMenuOpen } = useStore();
+  const { characterPosition, keysPressed, setCharacterPosition, setCharacterRotation, isMenuOpen } = useStore();
   
   const currentPosition = useRef(new THREE.Vector3(characterPosition.x, 0, characterPosition.z));
   const currentRotation = useRef(Math.PI);

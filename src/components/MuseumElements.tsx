@@ -189,7 +189,6 @@ export const RopeBarrier = ({ startX, startZ, endX, endZ, bold = false }: { star
   
   // Calculate number of posts (one every ~0.8 units)
   const numPosts = Math.max(2, Math.floor(length / 0.8) + 1);
-  const postSpacing = length / (numPosts - 1);
   
   const posts = [];
   for (let i = 0; i < numPosts; i++) {

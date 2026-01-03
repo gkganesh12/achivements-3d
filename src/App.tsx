@@ -1,17 +1,22 @@
+import { lazy, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useGameControls } from './hooks/useGameControls';
 import { useStore } from './store/useStore';
 import { CameraController } from './components/CameraController';
-import { Museum } from './scenes/Museum';
 import { HUD } from './components/HUD';
 import { LoadingScreen } from './scenes/LoadingScreen';
 import './App.css';
+
+// Lazy load Museum component for code splitting
+const Museum = lazy(() => import('./scenes/Museum').then(module => ({ default: module.Museum })));
 
 function Experience() {
   return (
     <>
       <CameraController />
-      <Museum />
+      <Suspense fallback={null}>
+        <Museum />
+      </Suspense>
       <fog attach="fog" args={['#ffffff', 25, 60]} />
     </>
   );
