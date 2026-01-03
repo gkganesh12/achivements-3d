@@ -10,40 +10,47 @@ import { LoadingScreen } from './scenes/LoadingScreen';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import './App.css';
 
-function Experience() {
-  console.log('Experience component rendering - this should appear in console');
-  
-  // Use useThree to access scene directly and ensure objects are added
-  const { scene, invalidate, gl } = useThree();
+// Separate component to check R3F state without using useThree hook
+function R3FStateChecker() {
+  const { scene, gl } = useThree();
   
   useEffect(() => {
-    console.log('Experience useEffect - scene children:', scene.children.length);
+    console.log('R3FStateChecker - scene children:', scene.children.length);
     
     // Check if R3F context is properly set up
     const r3fState = (gl as any)?._r3f;
+    const root = (gl as any)?._r3f?.root;
+    const reconciler = (gl as any)?._r3f?.reconciler;
+    
     console.log('Experience - R3F state check:', {
       r3fState: r3fState ? 'exists' : 'missing',
-      sceneChildren: scene.children.length
+      root: root ? 'exists' : 'missing',
+      reconciler: reconciler ? 'exists' : 'missing',
+      sceneChildren: scene.children.length,
+      rootChildren: root?.current?.children?.length || 0
     });
-    
-    // Force R3F to update/render multiple times
-    invalidate();
-    setTimeout(() => invalidate(), 100);
-    setTimeout(() => invalidate(), 200);
     
     // Check again after delays
     setTimeout(() => {
-      console.log('Experience - scene children after 500ms:', scene.children.length);
+      console.log('R3FStateChecker - scene children after 500ms:', scene.children.length);
       if (scene.children.length === 0) {
         console.error('R3F reconciliation failed - scene still empty after Experience render');
         console.error('This suggests the reconciler is not processing JSX children');
       }
     }, 500);
-    
-    setTimeout(() => {
-      console.log('Experience - scene children after 2000ms:', scene.children.length);
-    }, 2000);
-  }, [scene, invalidate, gl]);
+  }, [scene, gl]);
+  
+  return null;
+}
+
+function Experience() {
+  const { appState } = useStore();
+  console.log('Experience component rendering - appState:', appState);
+  
+  // Only render content when in MUSEUM state
+  if (appState !== 'MUSEUM') {
+    return null;
+  }
   
   return (
     <>
@@ -55,6 +62,7 @@ function Experience() {
       {/* Add a bright light to ensure visibility */}
       <pointLight position={[0, 5, 0]} intensity={2} color="#ffffff" />
       <ambientLight intensity={1} />
+      <R3FStateChecker />
       <CameraController />
       <ErrorBoundary>
         <Museum />
@@ -413,7 +421,7 @@ function App() {
               }}
             >
               <color attach="background" args={['#ffffff']} />
-              {safeAppState === 'MUSEUM' && <Experience />}
+              <Experience />
             </Canvas>
           </div>
 
