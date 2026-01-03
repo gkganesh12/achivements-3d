@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useGameControls } from './hooks/useGameControls';
@@ -45,11 +45,60 @@ function R3FStateChecker() {
 
 function Experience() {
   const { appState } = useStore();
+  const { gl } = useThree();
+  const [reconcilerReady, setReconcilerReady] = useState(false);
+  
   console.log('Experience component rendering - appState:', appState);
   
-  // Only render content when in MUSEUM state
-  if (appState !== 'MUSEUM') {
-    return null;
+  // Check if R3F reconciler is initialized
+  useEffect(() => {
+    const checkReconciler = () => {
+      const r3fState = (gl as any)?._r3f;
+      if (r3fState && r3fState.reconciler) {
+        console.log('R3F reconciler is ready!');
+        setReconcilerReady(true);
+        return true;
+      }
+      return false;
+    };
+    
+    // Check immediately
+    if (checkReconciler()) {
+      return;
+    }
+    
+    // If not ready, check periodically
+    const interval = setInterval(() => {
+      if (checkReconciler()) {
+        clearInterval(interval);
+      }
+    }, 100);
+    
+    // Timeout after 2 seconds
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+      if (!reconcilerReady) {
+        console.error('R3F reconciler failed to initialize after 2 seconds');
+        // Still try to render - might work anyway
+        setReconcilerReady(true);
+      }
+    }, 2000);
+    
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, [gl, reconcilerReady]);
+  
+  // Always render something minimal to ensure reconciler initializes
+  // Only render full content when in MUSEUM state AND reconciler is ready
+  if (appState !== 'MUSEUM' || !reconcilerReady) {
+    // Render minimal content to ensure reconciler initializes
+    return (
+      <>
+        <ambientLight intensity={0.1} />
+      </>
+    );
   }
   
   return (
@@ -145,8 +194,8 @@ function App() {
           backgroundColor: '#ffffff'
         }}
       >
-        {safeAppState === 'LOADING' && <LoadingScreen />}
-        {/* 3D Canvas - Always mount but conditionally show */}
+        {/* 3D Canvas - Always mount and fully visible for R3F reconciler initialization */}
+        {/* CRITICAL: Canvas must be visible with proper dimensions for reconciler to initialize */}
         <div 
           id="canvas-wrapper"
           style={{ 
@@ -155,10 +204,8 @@ function App() {
             left: 0, 
             width: '100%', 
             height: '100%',
-            zIndex: safeAppState === 'MUSEUM' ? 1 : -1,
-            backgroundColor: '#ffffff',
-            visibility: safeAppState === 'MUSEUM' ? 'visible' : 'hidden',
-            pointerEvents: safeAppState === 'MUSEUM' ? 'auto' : 'none'
+            zIndex: 0,
+            backgroundColor: '#ffffff'
           }}
         >
           <Canvas
@@ -421,9 +468,26 @@ function App() {
               }}
             >
               <color attach="background" args={['#ffffff']} />
-              <Experience />
+              <Suspense fallback={null}>
+                <Experience />
+              </Suspense>
             </Canvas>
           </div>
+        
+        {/* Loading Screen - overlay on top of Canvas */}
+        {safeAppState === 'LOADING' && (
+          <div style={{ 
+            position: 'absolute', 
+            top: 0, 
+            left: 0, 
+            width: '100%', 
+            height: '100%',
+            zIndex: 10,
+            pointerEvents: 'auto'
+          }}>
+            <LoadingScreen />
+          </div>
+        )}
 
         {/* UI Overlays - always render */}
         <HUD />
