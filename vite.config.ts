@@ -37,9 +37,17 @@ export default defineConfig({
             // This ensures React loads first and all dependencies are available
             return 'vendor';
           }
-        }
+        },
+        // Ensure proper chunk loading order
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
       }
     },
-    chunkSizeWarningLimit: 1500
+    chunkSizeWarningLimit: 1500,
+    // Ensure source maps are disabled for production (can cause issues)
+    sourcemap: false,
+    // Minify for production
+    minify: 'esbuild'
   }
 })

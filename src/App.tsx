@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
+import * as THREE from 'three';
 import { useGameControls } from './hooks/useGameControls';
 import { useStore } from './store/useStore';
 import { CameraController } from './components/CameraController';
@@ -123,7 +124,8 @@ function App() {
                 powerPreference: "high-performance",
                 preserveDrawingBuffer: false,
                 stencil: false,
-                depth: true
+                depth: true,
+                failIfMajorPerformanceCaveat: false
               }}
               dpr={[1, 2]}
               style={{ 
@@ -159,19 +161,45 @@ function App() {
                 // Ensure WebGL context is valid
                 const context = gl.getContext();
                 if (!context) {
-                  console.error('WebGL context is invalid');
+                  console.error('WebGL context is invalid - Canvas will not render');
+                  // Try to get WebGL2 context as fallback
+                  const canvas = gl.domElement;
+                  const webgl2Context = canvas.getContext('webgl2');
+                  if (webgl2Context) {
+                    console.log('WebGL2 context available as fallback');
+                  } else {
+                    console.error('No WebGL context available - check browser support');
+                  }
                 } else {
-                  console.log('WebGL context valid:', context.getParameter(context.VERSION));
+                  const version = context.getParameter(context.VERSION);
+                  const vendor = context.getParameter(context.VENDOR);
+                  const renderer = context.getParameter(context.RENDERER);
+                  console.log('WebGL context valid:', { version, vendor, renderer });
+                  
+                  // Verify WebGL is actually working
+                  const testProgram = context.createProgram();
+                  if (!testProgram) {
+                    console.error('WebGL cannot create programs - context may be lost');
+                  }
                 }
                 
                 // Log scene after a short delay to see if objects are added
                 setTimeout(() => {
                   console.log('Scene after render:', {
                     children: scene.children.length,
-                    childrenNames: scene.children.map(c => c.type || c.constructor.name || 'unknown')
+                    childrenNames: scene.children.map(c => c.type || c.constructor.name || 'unknown'),
+                    cameraPosition: camera.position,
+                    cameraLookAt: camera.getWorldDirection(new THREE.Vector3())
                   });
-                  // Force a render to ensure scene is visible
-                  gl.render(scene, camera);
+                  
+                  // Verify renderer is working
+                  if (gl.getContext()) {
+                    console.log('Renderer state:', {
+                      width: gl.domElement.width,
+                      height: gl.domElement.height,
+                      pixelRatio: gl.getPixelRatio()
+                    });
+                  }
                 }, 1000);
               }}
               onError={(error) => {
