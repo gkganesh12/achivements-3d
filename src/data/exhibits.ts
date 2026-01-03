@@ -1,5 +1,7 @@
 import type { ExhibitData } from '../store/useStore';
 
+const baseUrl = import.meta.env.BASE_URL;
+
 // Pictures VERY CLOSE - only 2.5 units apart
 export const exhibits: ExhibitData[] = [
     // LEFT WALL
@@ -13,7 +15,7 @@ export const exhibits: ExhibitData[] = [
         color: '#000000',
         position: { x: -3.5, z: 1.5 },
         wall: 'left',
-        logo: '/stan.png',
+        logo: `${baseUrl}stan.png`,
         documents: [
             {
                 type: 'offer-letter',
@@ -91,7 +93,7 @@ export const exhibits: ExhibitData[] = [
         color: '#000000',
         position: { x: 3.5, z: 1.5 },
         wall: 'right',
-        logo: '/dre.png',
+        logo: `${baseUrl}dre.png`,
         externalLinks: [
             {
                 label: 'View Details',
