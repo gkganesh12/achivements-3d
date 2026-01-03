@@ -5,17 +5,19 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    dedupe: ['react', 'react-dom', 'react/jsx-runtime']
+    dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'scheduler', 'react-reconciler']
   },
   optimizeDeps: {
     include: [
       'react',
       'react-dom',
       'react/jsx-runtime',
+      'scheduler',
+      'react-reconciler',
       '@react-three/fiber',
       '@react-three/drei'
     ],
-    exclude: []
+    force: true
   },
   build: {
     rollupOptions: {
