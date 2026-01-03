@@ -34,6 +34,8 @@ This creates an optimized production build in the `dist/` folder.
 
 ## Deployment Options
 
+> **Note**: This is a static site (SPA), so use Static Site hosting. For Render, use Static Site service, not Web Service.
+
 ### Option 1: Vercel (Recommended)
 
 1. **Install Vercel CLI** (optional):
