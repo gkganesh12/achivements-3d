@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useGameControls } from './hooks/useGameControls';
 import { useStore } from './store/useStore';
@@ -12,6 +12,18 @@ import './App.css';
 
 function Experience() {
   console.log('Experience component rendering - this should appear in console');
+  
+  // Use useThree to access scene directly and ensure objects are added
+  const { scene } = useThree();
+  
+  useEffect(() => {
+    console.log('Experience useEffect - scene children:', scene.children.length);
+    
+    // If scene is empty, manually add objects as fallback
+    if (scene.children.length === 0) {
+      console.warn('Scene is empty in Experience - R3F reconciliation may have failed');
+    }
+  }, [scene]);
   
   return (
     <>
@@ -231,6 +243,34 @@ function App() {
                     cameraLookAt: camera.getWorldDirection(new THREE.Vector3())
                   });
                   
+                  // CRITICAL: If scene has no children, manually add objects
+                  if (scene.children.length === 0) {
+                    console.error('Scene has NO children - R3F reconciliation failed!');
+                    console.error('This indicates React Three Fiber is not processing JSX correctly in production');
+                    console.error('Adding objects manually as fallback...');
+                    
+                    // Manually add test objects to verify scene works
+                    const testGeometry = new THREE.BoxGeometry(2, 2, 2);
+                    const testMaterial = new THREE.MeshStandardMaterial({ color: 'red', emissive: 'red', emissiveIntensity: 0.5 });
+                    const testMesh = new THREE.Mesh(testGeometry, testMaterial);
+                    testMesh.position.set(0, 2, 0);
+                    scene.add(testMesh);
+                    
+                    // Add light
+                    const light = new THREE.PointLight(0xffffff, 2);
+                    light.position.set(0, 5, 0);
+                    scene.add(light);
+                    
+                    // Add ambient light
+                    const ambient = new THREE.AmbientLight(0xffffff, 1);
+                    scene.add(ambient);
+                    
+                    console.log('Manually added objects to scene, children now:', scene.children.length);
+                    
+                    // Force immediate render
+                    gl.render(scene, camera);
+                  }
+                  
                   // Verify renderer is working
                   if (gl.getContext()) {
                     console.log('Renderer state:', {
@@ -241,7 +281,7 @@ function App() {
                     
                     // Force a render
                     gl.render(scene, camera);
-                    console.log('Forced render completed');
+                    console.log('Forced render completed, scene children:', scene.children.length);
                   }
                 }, 1000);
               }}
