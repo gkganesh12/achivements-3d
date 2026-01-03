@@ -7,6 +7,16 @@ export default defineConfig({
   resolve: {
     dedupe: ['react', 'react-dom', 'react/jsx-runtime']
   },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react/jsx-runtime',
+      '@react-three/fiber',
+      '@react-three/drei'
+    ],
+    exclude: []
+  },
   build: {
     rollupOptions: {
       output: {
