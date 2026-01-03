@@ -14,22 +14,36 @@ function Experience() {
   console.log('Experience component rendering - this should appear in console');
   
   // Use useThree to access scene directly and ensure objects are added
-  const { scene, invalidate } = useThree();
+  const { scene, invalidate, gl } = useThree();
   
   useEffect(() => {
     console.log('Experience useEffect - scene children:', scene.children.length);
     
-    // Force R3F to update/render
-    invalidate();
+    // Check if R3F context is properly set up
+    const r3fState = (gl as any)?._r3f;
+    console.log('Experience - R3F state check:', {
+      r3fState: r3fState ? 'exists' : 'missing',
+      sceneChildren: scene.children.length
+    });
     
-    // Check again after a short delay
+    // Force R3F to update/render multiple times
+    invalidate();
+    setTimeout(() => invalidate(), 100);
+    setTimeout(() => invalidate(), 200);
+    
+    // Check again after delays
     setTimeout(() => {
-      console.log('Experience - scene children after delay:', scene.children.length);
+      console.log('Experience - scene children after 500ms:', scene.children.length);
       if (scene.children.length === 0) {
         console.error('R3F reconciliation failed - scene still empty after Experience render');
+        console.error('This suggests the reconciler is not processing JSX children');
       }
     }, 500);
-  }, [scene, invalidate]);
+    
+    setTimeout(() => {
+      console.log('Experience - scene children after 2000ms:', scene.children.length);
+    }, 2000);
+  }, [scene, invalidate, gl]);
   
   return (
     <>
@@ -157,6 +171,7 @@ function App() {
                 display: 'block',
                 backgroundColor: '#ffffff'
               }}
+              frameloop="always"
               onCreated={({ camera, gl, scene }) => {
                 const canvas = gl.domElement;
                 
@@ -181,6 +196,8 @@ function App() {
                   });
                 }
                 
+                // Check if R3F reconciler is available
+                const r3fState = (gl as any)?._r3f;
                 console.log('Canvas created successfully', { 
                   cameraPosition: camera.position, 
                   cameraRotation: camera.rotation,
@@ -189,7 +206,8 @@ function App() {
                   canvasElement: canvas ? 'exists' : 'missing',
                   canvasWidth: canvas?.width,
                   canvasHeight: canvas?.height,
-                  canvasParent: canvas?.parentElement?.id || 'no parent'
+                  canvasParent: canvas?.parentElement?.id || 'no parent',
+                  r3fState: r3fState ? 'initialized' : 'not initialized'
                 });
                 
                 // Verify canvas is in DOM
@@ -240,8 +258,18 @@ function App() {
                   }
                 }
                 
-                // Log scene after a short delay to see if objects are added
+                // Check R3F reconciler state after a delay
                 setTimeout(() => {
+                  // Try to access R3F internal state to check reconciler
+                  const r3fInternal = (gl as any)?._r3f;
+                  const root = (gl as any)?._r3f?.root;
+                  
+                  console.log('R3F Reconciler Check:', {
+                    r3fState: r3fInternal ? 'exists' : 'missing',
+                    root: root ? 'exists' : 'missing',
+                    rootChildren: root?.current?.children?.length || 0
+                  });
+                  
                   console.log('Scene after render:', {
                     children: scene.children.length,
                     childrenNames: scene.children.map(c => c.type || c.constructor.name || 'unknown'),

@@ -46,6 +46,16 @@ export default defineConfig({
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]'
+      },
+      // Preserve R3F reconciler - don't tree-shake it
+      treeshake: {
+        preset: 'smallest',
+        moduleSideEffects: (id) => {
+          // Preserve R3F and reconciler modules
+          return id.includes('@react-three/fiber') || 
+                 id.includes('react-reconciler') ||
+                 id.includes('@react-three/drei');
+        }
       }
     },
     chunkSizeWarningLimit: 1500,
