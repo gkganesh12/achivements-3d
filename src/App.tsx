@@ -22,29 +22,40 @@ function Experience() {
 }
 
 function App() {
+  const { appState, setAppState } = useStore();
+  
   // Initialize game controls
   useGameControls();
-  const { appState } = useStore();
+
+  // Ensure app state is initialized
+  useEffect(() => {
+    console.log('App mounted, current state:', appState);
+    // Ensure we start with LOADING state
+    if (!appState) {
+      console.warn('App state is undefined, setting to LOADING');
+      setAppState('LOADING');
+    }
+  }, []);
 
   // Safety timeout - if loading takes too long, force transition to MUSEUM
   useEffect(() => {
     if (appState === 'LOADING') {
       const timeout = setTimeout(() => {
         console.warn('Loading timeout - forcing transition to MUSEUM');
-        useStore.getState().setAppState('MUSEUM');
+        setAppState('MUSEUM');
       }, 5000); // 5 second safety timeout
       
       return () => clearTimeout(timeout);
     }
-  }, [appState]);
+  }, [appState, setAppState]);
 
   // Add error logging for debugging
   useEffect(() => {
-    console.log('App state:', appState);
+    console.log('App state changed:', appState);
     
     // Log any unhandled errors
     const errorHandler = (event: ErrorEvent) => {
-      console.error('Global error:', event.error);
+      console.error('Global error:', event.error, event.message, event.filename, event.lineno);
     };
     
     const rejectionHandler = (event: PromiseRejectionEvent) => {
@@ -63,9 +74,25 @@ function App() {
   // Always render something - fallback to loading if state is invalid
   const safeAppState = appState === 'LOADING' || appState === 'MUSEUM' ? appState : 'LOADING';
 
+  // Debug: Log what we're rendering
+  useEffect(() => {
+    console.log('Rendering with safeAppState:', safeAppState);
+  }, [safeAppState]);
+
   return (
     <ErrorBoundary>
-      <div className="app-container" style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <div 
+        className="app-container" 
+        style={{ 
+          width: '100vw', 
+          height: '100vh', 
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          overflow: 'hidden',
+          backgroundColor: '#ffffff'
+        }}
+      >
         {safeAppState === 'LOADING' && <LoadingScreen />}
         {/* 3D Canvas - Direct entry to museum */}
         {safeAppState === 'MUSEUM' && (
@@ -75,6 +102,7 @@ function App() {
             gl={{ antialias: true, alpha: false }}
             dpr={[1, 2]}
             onCreated={({ camera }) => {
+              console.log('Canvas created successfully');
               // Point camera at character initially
               const characterPos = useStore.getState().characterPosition;
               camera.lookAt(characterPos.x, 1.1, characterPos.z);
