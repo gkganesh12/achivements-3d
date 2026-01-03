@@ -29,20 +29,12 @@ export default defineConfig({
         manualChunks: (id) => {
           // CRITICAL: Keep ALL React code in ONE chunk to prevent multiple instances
           if (id.includes('node_modules')) {
-            // All React-related code must be in the same chunk
-            if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler') || id.includes('react/jsx') || id.includes('react-reconciler')) {
-              return 'react-vendor';
-            }
-            if (id.includes('three')) {
+            // Separate three.js into its own chunk (large library)
+            if (id.includes('three') && !id.includes('@react-three')) {
               return 'three-vendor';
             }
-            if (id.includes('@react-three')) {
-              return 'react-three-vendor';
-            }
-            if (id.includes('zustand')) {
-              return 'utils-vendor';
-            }
-            // Other node_modules
+            // Everything else (including all React code) goes into one vendor chunk
+            // This ensures React loads first and all dependencies are available
             return 'vendor';
           }
         }
