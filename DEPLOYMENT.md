@@ -210,10 +210,32 @@ If you encounter build errors:
 
 ```bash
 # Clear cache and rebuild
-rm -rf node_modules dist
+rm -rf node_modules dist package-lock.json
 npm install
 npm run build
 ```
+
+### React Version Conflicts
+
+If you see "Cannot set properties of undefined" errors:
+
+1. **Delete lock file and reinstall**:
+   ```bash
+   rm -rf node_modules package-lock.json
+   npm install
+   ```
+
+2. **Verify React version**:
+   ```bash
+   npm list react react-dom
+   ```
+   Should show `18.3.1` for both.
+
+3. **Force clean build**:
+   ```bash
+   rm -rf dist .vite
+   npm run build
+   ```
 
 ## Post-Deployment Checklist
 
