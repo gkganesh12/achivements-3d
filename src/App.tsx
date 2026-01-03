@@ -249,29 +249,104 @@ function App() {
                     cameraLookAt: camera.getWorldDirection(new THREE.Vector3())
                   });
                   
-                  // CRITICAL: If scene has no children, manually add objects
+                  // CRITICAL: If scene has no children, manually add Museum scene objects
                   if (scene.children.length === 0) {
                     console.error('Scene has NO children - R3F reconciliation failed!');
                     console.error('This indicates React Three Fiber is not processing JSX correctly in production');
-                    console.error('Adding objects manually as fallback...');
+                    console.error('Adding Museum scene objects manually as fallback...');
                     
-                    // Manually add test objects to verify scene works
-                    const testGeometry = new THREE.BoxGeometry(2, 2, 2);
-                    const testMaterial = new THREE.MeshStandardMaterial({ color: 'red', emissive: 'red', emissiveIntensity: 0.5 });
-                    const testMesh = new THREE.Mesh(testGeometry, testMaterial);
-                    testMesh.position.set(0, 2, 0);
-                    scene.add(testMesh);
+                    // Create a group for the museum
+                    const museumGroup = new THREE.Group();
                     
-                    // Add light
-                    const light = new THREE.PointLight(0xffffff, 2);
-                    light.position.set(0, 5, 0);
-                    scene.add(light);
+                    // Add floor
+                    const floorGeometry = new THREE.PlaneGeometry(7, 14);
+                    const floorMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+                    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+                    floor.rotation.x = -Math.PI / 2;
+                    floor.position.set(0, 0, -4);
+                    museumGroup.add(floor);
                     
-                    // Add ambient light
-                    const ambient = new THREE.AmbientLight(0xffffff, 1);
-                    scene.add(ambient);
+                    // Add entry floor
+                    const entryFloor = new THREE.Mesh(
+                      new THREE.PlaneGeometry(12, 10),
+                      new THREE.MeshBasicMaterial({ color: 0xffffff })
+                    );
+                    entryFloor.rotation.x = -Math.PI / 2;
+                    entryFloor.position.set(0, 0, 7);
+                    museumGroup.add(entryFloor);
                     
-                    console.log('Manually added objects to scene, children now:', scene.children.length);
+                    // Add walls
+                    const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 });
+                    
+                    // Left wall
+                    const leftWall = new THREE.Mesh(
+                      new THREE.BoxGeometry(0.08, 8, 13.5),
+                      wallMaterial
+                    );
+                    leftWall.position.set(-3.5, 4, -4);
+                    museumGroup.add(leftWall);
+                    
+                    // Right wall
+                    const rightWall = new THREE.Mesh(
+                      new THREE.BoxGeometry(0.08, 8, 13.5),
+                      wallMaterial
+                    );
+                    rightWall.position.set(3.5, 4, -4);
+                    museumGroup.add(rightWall);
+                    
+                    // Back wall
+                    const backWall = new THREE.Mesh(
+                      new THREE.BoxGeometry(6.8, 8, 0.08),
+                      wallMaterial
+                    );
+                    backWall.position.set(0, 4, -10.5);
+                    museumGroup.add(backWall);
+                    
+                    // Add backdrop walls
+                    const backdropMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 });
+                    const leftBackdrop = new THREE.Mesh(new THREE.BoxGeometry(0.1, 12, 22), backdropMaterial);
+                    leftBackdrop.position.set(-5.5, 5, -4);
+                    museumGroup.add(leftBackdrop);
+                    
+                    const rightBackdrop = new THREE.Mesh(new THREE.BoxGeometry(0.1, 12, 22), backdropMaterial);
+                    rightBackdrop.position.set(5.5, 5, -4);
+                    museumGroup.add(rightBackdrop);
+                    
+                    const topBackdrop = new THREE.Mesh(new THREE.BoxGeometry(11.2, 0.1, 22), backdropMaterial);
+                    topBackdrop.position.set(0, 10, -4);
+                    museumGroup.add(topBackdrop);
+                    
+                    const backBackdrop = new THREE.Mesh(new THREE.BoxGeometry(11.2, 12, 0.1), backdropMaterial);
+                    backBackdrop.position.set(0, 5, -14.8);
+                    museumGroup.add(backBackdrop);
+                    
+                    // Add lighting
+                    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+                    museumGroup.add(ambientLight);
+                    
+                    const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.6);
+                    dirLight1.position.set(0, 8, 3);
+                    museumGroup.add(dirLight1);
+                    
+                    const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.3);
+                    dirLight2.position.set(0, 6, -2);
+                    museumGroup.add(dirLight2);
+                    
+                    const pointLight1 = new THREE.PointLight(0xffffff, 0.4, 15);
+                    pointLight1.position.set(0, 7, -3);
+                    museumGroup.add(pointLight1);
+                    
+                    const pointLight2 = new THREE.PointLight(0xffffff, 0.3, 12);
+                    pointLight2.position.set(0, 7, -7);
+                    museumGroup.add(pointLight2);
+                    
+                    // Add fog
+                    scene.fog = new THREE.Fog(0xffffff, 40, 100);
+                    
+                    // Add the museum group to scene
+                    scene.add(museumGroup);
+                    
+                    console.log('Manually added Museum scene objects, children now:', scene.children.length);
                     
                     // Force immediate render
                     gl.render(scene, camera);
