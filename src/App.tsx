@@ -45,10 +45,18 @@ function R3FStateChecker() {
 
 function Experience() {
   const { appState } = useStore();
-  const { gl } = useThree(); // Must be called unconditionally
+  // CRITICAL: useThree must be called unconditionally for R3F to work
+  // This hook access is what triggers R3F reconciler initialization
+  const three = useThree();
+  const { gl, scene } = three;
   const [reconcilerReady, setReconcilerReady] = useState(false);
   
   console.log('Experience component rendering - appState:', appState);
+  console.log('Experience - useThree returned:', {
+    hasGl: !!gl,
+    hasScene: !!scene,
+    glType: gl?.constructor?.name
+  });
   
   // Check if R3F reconciler is initialized
   useEffect(() => {

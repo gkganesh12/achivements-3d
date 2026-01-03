@@ -53,17 +53,25 @@ export default defineConfig({
         entryFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]'
       },
-      // Preserve R3F reconciler - don't tree-shake it
+      // CRITICAL: Preserve R3F reconciler - don't tree-shake it
+      // Mark R3F modules as having side effects to prevent optimization
       treeshake: {
         moduleSideEffects: (id) => {
           // Preserve R3F and reconciler modules - be very aggressive
           if (id.includes('@react-three/fiber')) return true;
           if (id.includes('react-reconciler')) return true;
           if (id.includes('@react-three/drei')) return true;
+          // Preserve any file that might initialize R3F
+          if (id.includes('canvas') && id.includes('@react-three')) return true;
           // Also preserve any module that might be needed by R3F
           return false;
-        }
-      }
+        },
+        // Don't remove unused code from R3F
+        propertyReadSideEffects: true,
+        tryCatchDeoptimization: true
+      },
+      // Externalize nothing - ensure R3F is bundled
+      external: []
     },
     chunkSizeWarningLimit: 1500,
     // Ensure source maps are disabled for production (can cause issues)
