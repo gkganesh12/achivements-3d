@@ -4,82 +4,39 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    react({
-      // Ensure JSX is properly transformed for R3F
-      jsxRuntime: 'automatic',
-      jsxImportSource: 'react'
-    })
+    react()
   ],
   resolve: {
-    dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'scheduler', 'react-reconciler'],
-    conditions: ['import', 'module', 'browser', 'default']
+    // Dedupe React packages to ensure single instance
+    dedupe: ['react', 'react-dom', '@react-three/fiber', '@react-three/drei', 'three']
   },
   optimizeDeps: {
     include: [
       'react',
       'react-dom',
-      'react/jsx-runtime',
-      'scheduler',
-      'react-reconciler',
       '@react-three/fiber',
-      '@react-three/drei'
-    ],
-    force: true
+      '@react-three/drei',
+      'three'
+    ]
   },
   build: {
     commonjsOptions: {
-      include: [/react-reconciler/, /node_modules/]
+      include: [/node_modules/],
+      transformMixedEsModules: true
     },
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
-          // CRITICAL: Keep ALL React code in ONE chunk to prevent multiple instances
-          if (id.includes('node_modules')) {
-            // Keep @react-three packages with React to ensure reconciler works
-            if (id.includes('@react-three')) {
-              return 'vendor';
-            }
-            // Separate three.js into its own chunk (large library)
-            if (id.includes('three') && !id.includes('@react-three')) {
-              return 'three-vendor';
-            }
-            // Everything else (including all React code) goes into one vendor chunk
-            // This ensures React loads first and all dependencies are available
-            return 'vendor';
-          }
-        },
-        // Ensure proper chunk loading order
-        chunkFileNames: 'assets/[name]-[hash].js',
-        entryFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]'
-      },
-      // CRITICAL: Preserve R3F reconciler - don't tree-shake it
-      // Mark R3F modules as having side effects to prevent optimization
-      treeshake: {
-        moduleSideEffects: (id) => {
-          // Preserve R3F and reconciler modules - be very aggressive
-          if (id.includes('@react-three/fiber')) return true;
-          if (id.includes('react-reconciler')) return true;
-          if (id.includes('@react-three/drei')) return true;
-          // Preserve any file that might initialize R3F
-          if (id.includes('canvas') && id.includes('@react-three')) return true;
-          // Also preserve any module that might be needed by R3F
-          return false;
-        },
-        // Don't remove unused code from R3F
-        propertyReadSideEffects: true,
-        tryCatchDeoptimization: true
-      },
-      // Externalize nothing - ensure R3F is bundled
-      external: []
+        manualChunks: {
+          // Keep React and R3F together
+          'react-vendor': ['react', 'react-dom'],
+          'r3f-vendor': ['@react-three/fiber', '@react-three/drei'],
+          'three-vendor': ['three']
+        }
+      }
     },
     chunkSizeWarningLimit: 1500,
-    // Ensure source maps are disabled for production (can cause issues)
     sourcemap: false,
-    // Minify for production
     minify: 'esbuild',
-    // Preserve module structure for R3F
-    target: 'esnext',
-    modulePreload: false
+    target: 'esnext'
   }
 })
