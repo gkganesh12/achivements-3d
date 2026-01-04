@@ -5,7 +5,7 @@ import { Text } from '@react-three/drei';
 import { useStore } from '../store/useStore';
 import type { ExhibitData } from '../store/useStore';
 
-const ACTIVATION_RADIUS = 1.0;
+const ACTIVATION_RADIUS = 0.6;
 
 export const ActivationCircle = ({ exhibit }: { exhibit: ExhibitData }) => {
   const wasInCircle = useRef(false);
@@ -13,7 +13,8 @@ export const ActivationCircle = ({ exhibit }: { exhibit: ExhibitData }) => {
   
   const isActive = activeExhibit?.id === exhibit.id;
   
-  const circleX = exhibit.wall === 'left' ? -2.5 : 2.5;
+  // Position circles closer to the barricades
+  const circleX = exhibit.wall === 'left' ? -2.1 : 2.1;
   const circleZ = exhibit.position.z;
 
   useFrame(() => {
@@ -49,9 +50,10 @@ export const ActivationCircle = ({ exhibit }: { exhibit: ExhibitData }) => {
 
   return (
     <group position={[circleX, 0.01, circleZ]}>
+      {/* Smaller, sharp black circle */}
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.4, 0.45, 32]} />
-        <meshBasicMaterial color="#000000" transparent opacity={isActive ? 0.5 : 0.3} />
+        <ringGeometry args={[0.2, 0.25, 32]} />
+        <meshBasicMaterial color="#000000" transparent opacity={isActive ? 0.8 : 0.5} />
       </mesh>
     </group>
   );
@@ -62,7 +64,7 @@ export const ProfileActivationCircle = () => {
   const { characterPosition, isProfileActive, setProfileActive, setAmplified, setActiveExhibit, isAmplified } = useStore();
 
   const circleX = 0;
-  const circleZ = -9.6;
+  const circleZ = -17.0;
 
   useFrame(() => {
     const distance = Math.sqrt(
@@ -113,47 +115,50 @@ export const Picture = ({ exhibit }: { exhibit: ExhibitData }) => {
   let rotY: number;
   
   if (exhibit.wall === 'left') {
-    xPos = -3.4;
+    xPos = -2.55;
     rotY = Math.PI / 2;
   } else if (exhibit.wall === 'right') {
-    xPos = 3.4;
+    xPos = 2.55;
     rotY = -Math.PI / 2;
   } else {
     xPos = 0;
     rotY = 0;
   }
 
+  // Use original z position since walls are now full length
+  const scaledZ = exhibit.position.z;
+  
   return (
     <group 
       ref={frameRef}
-      position={[xPos, 2.8, exhibit.position.z]}
+      position={[xPos, 2.1, scaledZ]}
       rotation={[0, rotY, 0]}
     >
-      {/* BIGGER Black frame */}
+      {/* Black frame - scaled down */}
       <mesh>
-        <boxGeometry args={[2, 3.2, 0.05]} />
+        <boxGeometry args={[1.5, 2.4, 0.05]} />
         <meshStandardMaterial color="#000000" roughness={0.6} metalness={0.1} />
       </mesh>
       
       {/* White inner */}
       <mesh position={[0, 0, 0.03]}>
-        <planeGeometry args={[1.7, 2.9]} />
+        <planeGeometry args={[1.28, 2.18]} />
         <meshStandardMaterial color="#ffffff" roughness={0.8} metalness={0} />
       </mesh>
       
       {/* Content area */}
-      <mesh position={[0, 0.08, 0.04]}>
-        <planeGeometry args={[1.4, 2.1]} />
+      <mesh position={[0, 0.06, 0.04]}>
+        <planeGeometry args={[1.05, 1.58]} />
         <meshStandardMaterial color="#ffffff" roughness={0.85} metalness={0} />
       </mesh>
       
       <Text
-        position={[0, 0.08, 0.05]}
-        fontSize={0.1}
+        position={[0, 0.06, 0.05]}
+        fontSize={0.075}
         color="#000000"
         anchorX="center"
         anchorY="middle"
-        maxWidth={1.0}
+        maxWidth={0.9}
         textAlign="center"
         lineHeight={1.1}
       >
@@ -161,8 +166,8 @@ export const Picture = ({ exhibit }: { exhibit: ExhibitData }) => {
       </Text>
       
       <Text
-        position={[0, -0.25, 0.05]}
-        fontSize={0.06}
+        position={[0, -0.19, 0.05]}
+        fontSize={0.045}
         color="#1a1a1a"
         anchorX="center"
         anchorY="middle"
@@ -171,8 +176,8 @@ export const Picture = ({ exhibit }: { exhibit: ExhibitData }) => {
       </Text>
       
       <Text
-        position={[0, -1.25, 0.05]}
-        fontSize={0.045}
+        position={[0, -0.94, 0.05]}
+        fontSize={0.034}
         color="#1a1a1a"
         anchorX="center"
         anchorY="middle"

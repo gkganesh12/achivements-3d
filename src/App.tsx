@@ -85,7 +85,7 @@ function App() {
         >
           <Canvas
             shadows
-            camera={{ position: [0, 2.1, 12], fov: 50 }}
+            camera={{ position: [0, 1.6, 0], fov: 50 }}
             gl={{ 
               antialias: true, 
               alpha: false,
@@ -100,7 +100,7 @@ function App() {
             }}
             onCreated={({ camera }) => {
               const characterPos = useStore.getState().characterPosition;
-              camera.lookAt(characterPos.x, 1.1, characterPos.z);
+              camera.lookAt(characterPos.x, 1.5, characterPos.z - 4);
             }}
           >
             <color attach="background" args={['#ffffff']} />

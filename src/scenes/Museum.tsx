@@ -5,158 +5,197 @@ import { Character } from '../components/Character';
 import { ActivationCircle, Picture, RopeBarrier, ProfileActivationCircle } from '../components/MuseumElements';
 
 export const Museum = () => {
+  // Gable triangle shapes - same white as walls
+  const frontGableShape = new THREE.Shape();
+  frontGableShape.moveTo(-2.6, 0);
+  frontGableShape.lineTo(2.6, 0);
+  frontGableShape.lineTo(0, 1.5);
+  frontGableShape.closePath();
+
   const backGableShape = new THREE.Shape();
-  backGableShape.moveTo(-3.4, 0);
-  backGableShape.lineTo(3.4, 0);
-  backGableShape.lineTo(0, 0.9);
-  backGableShape.lineTo(-3.4, 0);
-
-
+  backGableShape.moveTo(-2.6, 0);
+  backGableShape.lineTo(2.6, 0);
+  backGableShape.lineTo(0, 1.5);
+  backGableShape.closePath();
 
   return (
     <group>
-      {/* ===== FLOOR - VERY SHORT ===== */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -4]} receiveShadow>
-        <planeGeometry args={[7, 14]} />
+      {/* ===== FLOOR ===== */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -7.75]} receiveShadow>
+        <planeGeometry args={[5.25, 21]} />
         <meshBasicMaterial color="#ffffff" />
       </mesh>
 
-      {/* Entry floor threshold to hide exterior gap */}
+      {/* Entry floor - extends outward */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 7]} receiveShadow>
-        <planeGeometry args={[12, 10]} />
+        <planeGeometry args={[30, 30]} />
         <meshBasicMaterial color="#ffffff" />
       </mesh>
 
-      {/* Backdrop shell to hide exterior gaps - match wall color exactly */}
-      <mesh position={[-5.5, 5, -4]}>
-        <boxGeometry args={[0.1, 12, 22]} />
-        <meshStandardMaterial color="#ffffff" roughness={0.85} />
+      {/* ===== LARGE ENCLOSURE to hide ALL exterior space ===== */}
+      <mesh position={[-15, 5, 0]}>
+        <boxGeometry args={[0.1, 20, 60]} />
+        <meshBasicMaterial color="#ffffff" />
       </mesh>
-      <mesh position={[5.5, 5, -4]}>
-        <boxGeometry args={[0.1, 12, 22]} />
-        <meshStandardMaterial color="#ffffff" roughness={0.85} />
+      <mesh position={[15, 5, 0]}>
+        <boxGeometry args={[0.1, 20, 60]} />
+        <meshBasicMaterial color="#ffffff" />
       </mesh>
-      <mesh position={[0, 10, -4]}>
-        <boxGeometry args={[11.2, 0.1, 22]} />
-        <meshStandardMaterial color="#ffffff" roughness={0.85} />
+      <mesh position={[0, 15, 0]}>
+        <boxGeometry args={[30, 0.1, 60]} />
+        <meshBasicMaterial color="#ffffff" />
       </mesh>
-      <mesh position={[0, 5, -14.8]}>
-        <boxGeometry args={[11.2, 12, 0.1]} />
-        <meshStandardMaterial color="#ffffff" roughness={0.85} />
+      <mesh position={[0, 5, -30]}>
+        <boxGeometry args={[30, 20, 0.1]} />
+        <meshBasicMaterial color="#ffffff" />
+      </mesh>
+      <mesh position={[0, 5, 30]}>
+        <boxGeometry args={[30, 20, 0.1]} />
+        <meshBasicMaterial color="#ffffff" />
       </mesh>
 
-      {/* ===== NARROW WALLS ===== */}
-      {/* Left wall - with gap from back wall */}
-      <mesh position={[-3.5, 4, -4]}>
-        <boxGeometry args={[0.08, 8, 13.5]} />
+      {/* ===== WALLS - Extended length ===== */}
+      {/* Left wall */}
+      <mesh position={[-2.6, 1.9, -7.75]}>
+        <boxGeometry args={[0.08, 3.8, 21]} />
         <meshStandardMaterial color="#ffffff" roughness={0.85} />
       </mesh>
       
-      {/* Right wall - with gap from back wall */}
-      <mesh position={[3.5, 4, -4]}>
-        <boxGeometry args={[0.08, 8, 13.5]} />
+      {/* Right wall */}
+      <mesh position={[2.6, 1.9, -7.75]}>
+        <boxGeometry args={[0.08, 3.8, 21]} />
         <meshStandardMaterial color="#ffffff" roughness={0.85} />
       </mesh>
       
-      {/* Back wall - Profile with white color, separated from side walls */}
-      <mesh position={[0, 4, -10.5]}>
-        <boxGeometry args={[6.8, 8, 0.08]} />
+      {/* Back wall - Profile */}
+      <mesh position={[0, 1.9, -18.25]}>
+        <boxGeometry args={[5.1, 3.8, 0.08]} />
         <meshStandardMaterial color="#ffffff" roughness={0.85} />
       </mesh>
 
-      {/* Profile wall lighting - Enhanced */}
+      {/* Profile wall lighting - shifted back */}
       <spotLight
-        position={[0, 7.2, -7.5]}
+        position={[0, 4.5, -15]}
         angle={0.6}
         penumbra={0.6}
         intensity={0.7}
-        distance={15}
-        color="#ffffff"
-      />
-      <spotLight
-        position={[-2, 6.5, -8]}
-        angle={0.5}
-        penumbra={0.7}
-        intensity={0.3}
         distance={10}
         color="#ffffff"
       />
       <spotLight
-        position={[2, 6.5, -8]}
+        position={[-1.5, 4, -15.5]}
         angle={0.5}
         penumbra={0.7}
         intensity={0.3}
-        distance={10}
+        distance={8}
         color="#ffffff"
       />
-      
-      {/* Front wall removed to keep entry open */}
+      <spotLight
+        position={[1.5, 4, -15.5]}
+        angle={0.5}
+        penumbra={0.7}
+        intensity={0.3}
+        distance={8}
+        color="#ffffff"
+      />
 
-      {/* ===== TRIANGULAR CEILING - FIXED ===== */}
-      {/* Left sloped */}
-      <mesh position={[-1.75, 8.1, -4.3]} rotation={[0, 0, Math.PI / 8]}>
-        <boxGeometry args={[3.8, 0.08, 15]} />
-        <meshStandardMaterial color="#fbfbfb" />
+      {/* ===== VISIBLE TRIANGULAR CEILING - Extended ===== */}
+      {/* Left sloped roof panel */}
+      <mesh position={[-1.35, 4.55, -8]} rotation={[0, 0, Math.PI / 5.5]}>
+        <boxGeometry args={[3.2, 0.1, 22]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.85} />
       </mesh>
       
-      {/* Right sloped */}
-      <mesh position={[1.75, 8.1, -4.3]} rotation={[0, 0, -Math.PI / 8]}>
-        <boxGeometry args={[3.8, 0.08, 15]} />
-        <meshStandardMaterial color="#fbfbfb" />
+      {/* Right sloped roof panel */}
+      <mesh position={[1.35, 4.55, -8]} rotation={[0, 0, -Math.PI / 5.5]}>
+        <boxGeometry args={[3.2, 0.1, 22]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.85} />
+      </mesh>
+
+      {/* RIDGE BEAM - runs along the peak */}
+      <mesh position={[0, 5.1, -8]}>
+        <boxGeometry args={[0.12, 0.12, 22]} />
+        <meshStandardMaterial color="#1a1a1a" metalness={0.3} roughness={0.7} />
+      </mesh>
+
+      {/* LEFT CORNER - Vertical line where left wall meets back wall */}
+      <mesh position={[-2.56, 1.9, -18.25]}>
+        <boxGeometry args={[0.03, 3.8, 0.03]} />
+        <meshBasicMaterial color="#000000" />
       </mesh>
       
-      {/* Ridge */}
-      <mesh position={[0, 8.7, -4.3]}>
-        <boxGeometry args={[0.1, 0.1, 15]} />
-        <meshStandardMaterial color="#ffffff" />
+      {/* RIGHT CORNER - Vertical line where right wall meets back wall */}
+      <mesh position={[2.56, 1.9, -18.25]}>
+        <boxGeometry args={[0.03, 3.8, 0.03]} />
+        <meshBasicMaterial color="#000000" />
+      </mesh>
+
+
+      {/* Front gable triangle - matching white */}
+      <mesh position={[0, 3.8, 2.9]}>
+        <shapeGeometry args={[frontGableShape]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.85} side={THREE.DoubleSide} />
       </mesh>
       
-      {/* Fill front triangle - matches room width */}
-      <mesh position={[0, 8.3, 2.9]}>
-        <planeGeometry args={[6.8, 1.6]} />
-        <meshStandardMaterial color="#ffffff" />
-      </mesh>
-      
-      {/* Fill back triangle - matches profile wall width (6.8 units) */}
-      <mesh position={[0, 8, -10.45]} rotation={[0, Math.PI, 0]}>
+      {/* Back gable triangle - matching white */}
+      <mesh position={[0, 3.8, -18.25]} rotation={[0, Math.PI, 0]}>
         <shapeGeometry args={[backGableShape]} />
-        <meshStandardMaterial color="#ffffff" />
+        <meshStandardMaterial color="#ffffff" roughness={0.85} side={THREE.DoubleSide} />
       </mesh>
-      
-      {/* Ceiling arrow */}
-      <group position={[0, 8.5, -2]}>
-        <mesh>
-          <boxGeometry args={[0.07, 0.025, 1.2]} />
-          <meshBasicMaterial color="#000000" />
-        </mesh>
-        <mesh position={[0, 0, -0.75]} rotation={[Math.PI / 2, 0, 0]}>
-          <coneGeometry args={[0.12, 0.25, 3]} />
-          <meshBasicMaterial color="#000000" />
-        </mesh>
-      </group>
 
-      {/* ===== HANGING LIGHTS ===== */}
-      {[-3, -7].map((z, i) => (
-        <group key={`light-${i}`} position={[0, 8.3, z]}>
+
+      {/* ===== ELEGANT CHANDELIERS - Added one more for length ===== */}
+      {[-3, -9, -15].map((z, i) => (
+        <group key={`chandelier-${i}`} position={[0, 4.8, z]}>
+          {/* Main hanging chain/rod */}
           <mesh position={[0, -0.3, 0]}>
-            <cylinderGeometry args={[0.012, 0.012, 0.6, 8]} />
-            <meshBasicMaterial color="#000000" />
+            <cylinderGeometry args={[0.015, 0.015, 0.6, 8]} />
+            <meshStandardMaterial color="#2a2a2a" metalness={0.8} />
           </mesh>
-          <mesh position={[0, -0.7, 0]}>
-            <coneGeometry args={[0.18, 0.25, 8]} />
-            <meshBasicMaterial color="#ffffff" />
+          
+          {/* Chandelier base ring */}
+          <mesh position={[0, -0.65, 0]}>
+            <torusGeometry args={[0.2, 0.02, 8, 24]} />
+            <meshStandardMaterial color="#1a1a1a" metalness={0.9} roughness={0.2} />
           </mesh>
-          <pointLight position={[0, -0.8, 0]} intensity={0.5} distance={6} color="#ffffff" />
+          
+          {/* Central ornament */}
+          <mesh position={[0, -0.75, 0]}>
+            <sphereGeometry args={[0.06, 16, 16]} />
+            <meshStandardMaterial color="#1a1a1a" metalness={0.9} roughness={0.2} />
+          </mesh>
+          
+          {/* Hanging crystals/drops around the ring */}
+          {[0, 1, 2, 3, 4, 5].map((j) => {
+            const angle = (j / 6) * Math.PI * 2;
+            const x = Math.cos(angle) * 0.2;
+            const zPos = Math.sin(angle) * 0.2;
+            return (
+              <group key={`crystal-${j}`} position={[x, -0.65, zPos]}>
+                <mesh position={[0, -0.12, 0]}>
+                  <cylinderGeometry args={[0.005, 0.005, 0.15, 6]} />
+                  <meshStandardMaterial color="#333333" metalness={0.7} />
+                </mesh>
+                <mesh position={[0, -0.22, 0]}>
+                  <octahedronGeometry args={[0.035]} />
+                  <meshStandardMaterial color="#555555" metalness={0.5} roughness={0.3} />
+                </mesh>
+              </group>
+            );
+          })}
+          
+          {/* Light from chandelier */}
+          <pointLight position={[0, -0.8, 0]} intensity={0.4} distance={6} color="#fff5e6" />
         </group>
       ))}
-      
+
 
       {/* ===== PROFILE WALL ===== */}
-      <group position={[0, 0, -10.46]}>
+      <group position={[0, 0, -18.21]}>
         <Html
           transform
-          position={[0, 4.45, 0.06]}
-          distanceFactor={5.5}
+          position={[0, 2.5, 0.06]}
+          distanceFactor={4.5}
           style={{ pointerEvents: 'none' }}
         >
           <div className="profile-panel">
@@ -167,19 +206,14 @@ export const Museum = () => {
         </Html>
       </group>
 
-      {/* ===== COMPACT BARRIERS ===== */}
-      {/* Side wall barricades - connected to profile wall barricades */}
-      <RopeBarrier startX={-3.0} startZ={1} endX={-3.0} endZ={-11} />
-      <RopeBarrier startX={3.0} startZ={1} endX={3.0} endZ={-11} />
+      {/* ===== BARRIERS - Extended ===== */}
+      <RopeBarrier startX={-2.25} startZ={1} endX={-2.25} endZ={-18} />
+      <RopeBarrier startX={2.25} startZ={1} endX={2.25} endZ={-18} />
       
-      {/* Profile barrier - bold, connected to side wall barricades */}
-      {/* Profile wall is 6.8 units wide (x: -3.4 to 3.4), positioned at z: -10.5 */}
-      {/* Bottom horizontal - connects left and right wall barricades */}
-      <RopeBarrier startX={-3.0} startZ={-10.3} endX={3.0} endZ={-10.3} bold />
-      {/* Left vertical - connects to left wall barricade */}
-      <RopeBarrier startX={-3.0} startZ={-10.3} endX={-3.0} endZ={-11} bold />
-      {/* Right vertical - connects to right wall barricade */}
-      <RopeBarrier startX={3.0} startZ={-10.3} endX={3.0} endZ={-11} bold />
+      {/* Profile barrier */}
+      <RopeBarrier startX={-2.25} startZ={-18.1} endX={2.25} endZ={-18.1} bold />
+      <RopeBarrier startX={-2.25} startZ={-18.1} endX={-2.25} endZ={-18} bold />
+      <RopeBarrier startX={2.25} startZ={-18.1} endX={2.25} endZ={-18} bold />
       <ProfileActivationCircle />
 
       {/* ===== PICTURES ===== */}
@@ -190,12 +224,13 @@ export const Museum = () => {
         </group>
       ))}
 
-      {/* ===== LIGHTING - ENHANCED ===== */}
+      {/* ===== LIGHTING ===== */}
       <ambientLight intensity={0.9} />
-      <directionalLight position={[0, 8, 3]} intensity={0.6} />
-      <directionalLight position={[0, 6, -2]} intensity={0.3} />
-      <pointLight position={[0, 7, -3]} intensity={0.4} distance={15} />
-      <pointLight position={[0, 7, -7]} intensity={0.3} distance={12} />
+      <directionalLight position={[0, 5, 3]} intensity={0.6} />
+      <directionalLight position={[0, 4, -2]} intensity={0.3} />
+      <pointLight position={[0, 4, -3]} intensity={0.4} distance={10} />
+      <pointLight position={[0, 4, -7]} intensity={0.3} distance={8} />
+      <pointLight position={[0, 4, -13]} intensity={0.3} distance={8} />
 
       <Character />
     </group>

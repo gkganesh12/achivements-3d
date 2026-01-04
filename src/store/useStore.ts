@@ -47,7 +47,7 @@ type Store = {
 export const useStore = create<Store>((set) => ({
     appState: 'LOADING',
     setAppState: (state) => set({ appState: state }),
-    characterPosition: { x: 0, z: -4 },
+    characterPosition: { x: 0, z: -5 },
     setCharacterPosition: (pos) => set({ characterPosition: pos }),
     characterRotation: 0,
     setCharacterRotation: (rotation) => set({ characterRotation: rotation }),

@@ -2,7 +2,7 @@ import type { ExhibitData } from '../store/useStore';
 
 const baseUrl = import.meta.env.BASE_URL;
 
-// Pictures VERY CLOSE - only 2.5 units apart
+// Pictures spaced uniformly - 3.5 units apart
 export const exhibits: ExhibitData[] = [
     // LEFT WALL
     {
@@ -32,7 +32,7 @@ export const exhibits: ExhibitData[] = [
         year: '2024',
         type: 'certification',
         color: '#000000',
-        position: { x: -3.5, z: -1.5 },
+        position: { x: -3.5, z: -2.0 },
         wall: 'left',
         logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Oracle_logo.svg/200px-Oracle_logo.svg.png',
         externalLinks: [
@@ -50,7 +50,7 @@ export const exhibits: ExhibitData[] = [
         year: '2024',
         type: 'achievement',
         color: '#000000',
-        position: { x: -3.5, z: -5 },
+        position: { x: -3.5, z: -5.5 },
         wall: 'left'
     },
     {
@@ -61,7 +61,7 @@ export const exhibits: ExhibitData[] = [
         year: '2024',
         type: 'achievement',
         color: '#000000',
-        position: { x: -3.5, z: -8.5 },
+        position: { x: -3.5, z: -9.0 },
         wall: 'left'
     },
     {
@@ -72,7 +72,7 @@ export const exhibits: ExhibitData[] = [
         year: '2024–2025',
         type: 'project',
         color: '#000000',
-        position: { x: -3.5, z: -12 },
+        position: { x: -3.5, z: -12.5 },
         wall: 'left',
         externalLinks: [
             {
@@ -80,6 +80,17 @@ export const exhibits: ExhibitData[] = [
                 url: 'https://github.com/gkganesh12'
             }
         ]
+    },
+    {
+        id: 'ai-research-publication',
+        title: 'AI Research (In Progress)',
+        subtitle: 'Advanced LLM Optimization',
+        description: 'Ongoing technical research on optimizing large language model inference pipelines and architectural efficiency for edge-cloud hybrid systems.',
+        year: '2025',
+        type: 'achievement',
+        color: '#000000',
+        position: { x: -3.5, z: -16.0 },
+        wall: 'left'
     },
 
     // RIGHT WALL
@@ -109,7 +120,7 @@ export const exhibits: ExhibitData[] = [
         year: '2024',
         type: 'certification',
         color: '#000000',
-        position: { x: 3.5, z: -1.5 },
+        position: { x: 3.5, z: -2.0 },
         wall: 'right',
         logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Oracle_logo.svg/200px-Oracle_logo.svg.png',
         externalLinks: [
@@ -127,7 +138,7 @@ export const exhibits: ExhibitData[] = [
         year: '2024',
         type: 'achievement',
         color: '#000000',
-        position: { x: 3.5, z: -5 },
+        position: { x: 3.5, z: -5.5 },
         wall: 'right'
     },
     {
@@ -138,7 +149,7 @@ export const exhibits: ExhibitData[] = [
         year: '2023–2025',
         type: 'project',
         color: '#000000',
-        position: { x: 3.5, z: -8.5 },
+        position: { x: 3.5, z: -9.0 },
         wall: 'right',
         externalLinks: [
             {
@@ -155,7 +166,18 @@ export const exhibits: ExhibitData[] = [
         year: '2025',
         type: 'project',
         color: '#000000',
-        position: { x: 3.5, z: -12 },
+        position: { x: 3.5, z: -12.5 },
+        wall: 'right'
+    },
+    {
+        id: 'google-ai-ambassador',
+        title: 'Google AI Student Ambassador',
+        subtitle: 'Beta Craft Technologies | Pune',
+        description: 'Serving as the Google AI Student Ambassador and currently working as a Software Engineer at Beta Craft Technologies, Pune, building next-gen scalable systems.',
+        year: '2025',
+        type: 'achievement',
+        color: '#000000',
+        position: { x: 3.5, z: -16.0 },
         wall: 'right'
     }
 ];
@@ -166,5 +188,5 @@ export const profileData = {
     bio: [
         "I am Ganesh Khetawat. I build systems, products, and design workflows with clarity and intent. I focus on behavior, structure, and outcomes - not just visuals. Each milestone builds the next. Move through the space to see how I think, learn, and build forward momentum."
     ],
-    position: { x: 0, z: -10.5 }
+    position: { x: 0, z: -18.0 } // Moved back to fit more exhibits
 };
