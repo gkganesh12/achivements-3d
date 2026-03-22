@@ -1,4 +1,4 @@
-import { useEffect, Suspense } from 'react';
+import { useEffect, Suspense, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useGameControls } from './hooks/useGameControls';
 import { useStore } from './store/useStore';
@@ -32,6 +32,20 @@ function Experience() {
 
 function App() {
   const { appState, setAppState } = useStore();
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Check for mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent;
+      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent) || window.innerWidth <= 768;
+      setIsMobile(isMobileDevice);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   // Initialize game controls
   useGameControls();
@@ -53,6 +67,30 @@ function App() {
       return () => clearTimeout(timeout);
     }
   }, [appState, setAppState]);
+
+  if (isMobile) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        width: '100vw',
+        backgroundColor: '#111',
+        color: '#fff',
+        padding: '20px',
+        textAlign: 'center',
+        fontFamily: 'system-ui, -apple-system, sans-serif'
+      }}>
+        <h1 style={{ marginBottom: '16px', fontSize: '24px' }}>Desktop Only Experience</h1>
+        <p style={{ maxWidth: '400px', lineHeight: '1.6', color: '#ccc', fontSize: '16px' }}>
+          This 3D portfolio is designed for desktop viewing only. 
+          Mobile view is not allowed. Please open this site on a desktop or laptop computer.
+        </p>
+      </div>
+    );
+  }
 
   const safeAppState = appState === 'LOADING' || appState === 'MUSEUM' ? appState : 'LOADING';
 

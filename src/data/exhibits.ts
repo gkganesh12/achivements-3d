@@ -2,7 +2,6 @@ import type { ExhibitData } from '../store/useStore';
 
 const baseUrl = import.meta.env.BASE_URL;
 
-// Pictures spaced uniformly - 3.5 units apart
 export const exhibits: ExhibitData[] = [
     // LEFT WALL
     {
