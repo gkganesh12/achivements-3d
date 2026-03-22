@@ -47,12 +47,13 @@ export interface Identity {
 
 export type AppState = 
   | 'LOADING'
-  | 'ENTRY'
+  | 'ENTRANCE'
   | 'GALLERY'
   | 'HERO_ROOM'
   | 'SIDE_GALLERY'
   | 'PROJECTS_WING'
   | 'IDENTITY_OVERLAY'
+  | 'MUSEUM'
   | 'MENU';
 
 export interface CameraTarget {

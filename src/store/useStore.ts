@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import type { AppState } from '../types';
+
 
 export type ExhibitData = {
     id: string;
@@ -22,7 +24,8 @@ export type ExhibitData = {
     }[];
 };
 
-type AppState = 'LOADING' | 'MUSEUM';
+// Removed local AppState definition to use central type from types/index.ts
+
 
 type Store = {
     appState: AppState;

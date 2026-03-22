@@ -4,6 +4,7 @@ import { useGameControls } from './hooks/useGameControls';
 import { useStore } from './store/useStore';
 import { CameraController } from './components/CameraController';
 import { Museum } from './scenes/Museum';
+import { EntryScene } from './scenes/EntryScene';
 import { HUD } from './components/HUD';
 import { LoadingScreen } from './scenes/LoadingScreen';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -12,7 +13,16 @@ import './App.css';
 function Experience() {
   const { appState } = useStore();
   
-  // Only render Museum when in MUSEUM state
+  // Handle entrance and museum states
+  if (appState === 'ENTRANCE' || appState === 'LOADING') {
+    return (
+      <>
+        <EntryScene />
+        <ambientLight intensity={0.5} />
+      </>
+    );
+  }
+  
   if (appState !== 'MUSEUM') {
     return (
       <>
@@ -57,15 +67,29 @@ function App() {
     }
   }, [appState, setAppState]);
 
-  // Safety timeout - if loading takes too long, force transition to MUSEUM
+  // Safety timeout - if loading takes too long, force transition to ENTRANCE
   useEffect(() => {
     if (appState === 'LOADING') {
       const timeout = setTimeout(() => {
-        setAppState('MUSEUM');
+        setAppState('ENTRANCE');
       }, 5000);
       
       return () => clearTimeout(timeout);
     }
+  }, [appState, setAppState]);
+
+  // Handle start from ENTRANCE scene
+  useEffect(() => {
+    if (appState !== 'ENTRANCE') return;
+
+    const handleStart = (e: KeyboardEvent) => {
+      if (e.code === 'Space' || e.code === 'Enter') {
+        setAppState('MUSEUM');
+      }
+    };
+
+    window.addEventListener('keydown', handleStart);
+    return () => window.removeEventListener('keydown', handleStart);
   }, [appState, setAppState]);
 
   if (isMobile) {
