@@ -14,7 +14,17 @@ export const CameraController = () => {
   const targetPosition = useRef(new THREE.Vector3(0, 1.6, characterStartPos.z + 3));
   const targetLookAt = useRef(new THREE.Vector3(characterStartPos.x, 1.5, characterStartPos.z - 3));
 
-  useFrame(() => {
+  // Subtle head-bob while walking — sells the stride without causing motion sickness
+  const bobEnvelope = useRef(0);
+  const bobPhase = useRef(0);
+
+  useFrame((_, delta) => {
+    const keys = useStore.getState().keysPressed;
+    const isWalking =
+      !isAmplified &&
+      ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].some((k) => keys.has(k));
+    bobEnvelope.current = THREE.MathUtils.lerp(bobEnvelope.current, isWalking ? 1 : 0, 0.07);
+    if (isWalking) bobPhase.current += delta * 9.5; // matches the character's stride rate
 
     if (isAmplified && isProfileActive) {
       targetPosition.current.set(0, 1.6, -14.5);
@@ -61,7 +71,20 @@ export const CameraController = () => {
     }
 
     camera.position.copy(currentPosition.current);
+
+    // Apply the walk bob on top of the smoothed follow position
+    const env = bobEnvelope.current;
+    if (env > 0.001) {
+      camera.position.y += Math.abs(Math.sin(bobPhase.current)) * 0.018 * env;
+      camera.position.x += Math.sin(bobPhase.current) * 0.01 * env;
+    }
+
     camera.lookAt(currentLookAt.current);
+
+    // A whisper of roll with each step
+    if (env > 0.001) {
+      camera.rotation.z += Math.sin(bobPhase.current) * 0.0022 * env;
+    }
   });
 
   return null;

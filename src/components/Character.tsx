@@ -1,10 +1,15 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF, useAnimations } from '@react-three/drei';
 import * as THREE from 'three';
 import { useStore } from '../store/useStore';
+import { playFootstep } from '../utils/footsteps';
 
 const MOVE_SPEED = 3.5;
+const PUFF_COUNT = 8;
+const PUFF_LIFE = 0.45; // seconds
+
+type Puff = { x: number; z: number; age: number; active: boolean };
 const ROOM_BOUNDS = {
   minX: -2.0,
   maxX: 2.0,
@@ -21,13 +26,27 @@ export const Character = () => {
   const currentPosition = useRef(new THREE.Vector3(characterPosition.x, 0, characterPosition.z));
   const currentRotation = useRef(Math.PI);
   const walkCycle = useRef(0);
+  const gait = useRef(0); // 0 = standing, 1 = full stride
+  const wasMovingClip = useRef(false);
+  const stepSign = useRef(1); // which foot is planted (sign of the stride wave)
+  const puffs = useRef<Puff[]>(Array.from({ length: PUFF_COUNT }, () => ({ x: 0, z: 0, age: 0, active: false })));
+  const puffMeshes = useRef<(THREE.Mesh | null)[]>([]);
+  const nextPuff = useRef(0);
 
   // Load the businessman 3D model with animations
   const { scene, animations } = useGLTF('/businessman.glb');
   const { actions, names } = useAnimations(animations, modelRef);
-  
-  // Clone the scene
-  const clonedScene = scene.clone();
+
+  // Clone once — cloning per render made every movement frame re-clone the GLB
+  const clonedScene = useMemo(() => scene.clone(), [scene]);
+
+  // If the GLB ships real clips (e.g. after auto-rigging on Mixamo), use them;
+  // otherwise the procedural gait below takes over.
+  const walkClip = useMemo(() => names.find((n) => /walk|run|jog/i.test(n)) ?? null, [names]);
+  const idleClip = useMemo(
+    () => names.find((n) => /idle|stand|breath/i.test(n)) ?? (walkClip ? null : names[0] ?? null),
+    [names, walkClip]
+  );
 
   useEffect(() => {
     // Setup shadows
@@ -37,20 +56,16 @@ export const Character = () => {
         child.receiveShadow = true;
       }
     });
-    
-    // Log available animations for debugging
-    console.log('Businessman animations:', names);
-    
-    // Play idle animation if available
-    if (names.length > 0 && actions[names[0]]) {
-      actions[names[0]]?.reset().play();
+
+    if (idleClip) {
+      actions[idleClip]?.reset().play();
     }
-  }, [clonedScene, names, actions]);
+  }, [clonedScene, idleClip, actions]);
 
   // Hide character when viewing an exhibit
   const { isAmplified } = useStore();
 
-  useFrame((_state, delta) => {
+  useFrame((state, delta) => {
     if (isMenuOpen) return;
     
     // ... existing movement logic ...
@@ -86,7 +101,7 @@ export const Character = () => {
       
       const targetRotation = Math.atan2(moveX, moveZ);
       setCharacterRotation(targetRotation);
-      walkCycle.current += delta * 15; // Faster walk cycle
+      walkCycle.current += delta * 9.5; // ~3 footfalls per second at full speed
     }
 
     if (groupRef.current) {
@@ -106,25 +121,98 @@ export const Character = () => {
       currentRotation.current += diff * 0.12;
       groupRef.current.rotation.y = currentRotation.current;
       
-      // ENHANCED PROCEDURAL WALK ANIMATION
+      // WALK ANIMATION
       if (modelRef.current) {
-        if (isMoving) {
-          // More pronounced bob (up and down)
-          const bob = Math.abs(Math.sin(walkCycle.current)) * 0.04;
-          modelRef.current.position.y = bob;
-          
-          // Side-to-side sway (like steps)
-          const sway = Math.sin(walkCycle.current) * 0.03;
-          modelRef.current.rotation.z = sway; // Rocking side to side
-          
-          // Forward/Backward tilt (acceleration/deceleration feel)
-          modelRef.current.rotation.x = (Math.sin(walkCycle.current * 2) * 0.02);
+        const model = modelRef.current;
+
+        if (walkClip) {
+          // The GLB ships real clips — crossfade walk <-> idle
+          if (wasMovingClip.current !== isMoving) {
+            const walk = actions[walkClip];
+            const idle = idleClip ? actions[idleClip] : null;
+            if (isMoving) {
+              walk?.reset().fadeIn(0.2).play();
+              idle?.fadeOut(0.2);
+            } else {
+              walk?.fadeOut(0.25);
+              idle?.reset().fadeIn(0.25).play();
+            }
+            wasMovingClip.current = isMoving;
+          }
         } else {
-          // Return to neutral
-          modelRef.current.position.y = THREE.MathUtils.lerp(modelRef.current.position.y, 0, 0.1);
-          modelRef.current.rotation.z = THREE.MathUtils.lerp(modelRef.current.rotation.z, 0, 0.1);
-          modelRef.current.rotation.x = THREE.MathUtils.lerp(modelRef.current.rotation.x, 0, 0.1);
+          // PROCEDURAL GAIT (no rig in the GLB — fake a believable stride)
+          // Ease the gait in/out so starting and stopping look weighted
+          gait.current = THREE.MathUtils.lerp(gait.current, isMoving ? 1 : 0, isMoving ? 0.09 : 0.13);
+          const g = gait.current;
+          const t = walkCycle.current;
+          const time = state.clock.elapsedTime;
+
+          // Footfalls: two per cycle, sharpened so each step visibly lands
+          const footfall = Math.pow(Math.abs(Math.sin(t)), 0.8);
+          // Idle breathing keeps him alive while standing still
+          const breathe = (1 - g) * Math.sin(time * 1.7) * 0.006;
+          model.position.y = footfall * 0.045 * g + breathe;
+
+          // Weight shifts onto each foot in turn
+          model.position.x = Math.sin(t) * 0.028 * g;
+
+          // Hips roll with the weight shift, banking extra into turns
+          const turnBank = THREE.MathUtils.clamp(-diff * 0.6, -0.15, 0.15) * g;
+          model.rotation.z = Math.sin(t) * 0.05 * g + turnBank + (1 - g) * Math.sin(time * 0.9) * 0.008;
+
+          // Torso counter-sways against the stride, like arm swing
+          model.rotation.y = Math.sin(t) * 0.085 * g;
+
+          // Lean into the walk, with a small per-step pulse
+          model.rotation.x = (0.06 + Math.sin(t * 2) * 0.012) * g;
+
+          // Squash on landing, stretch mid-stride — sells the weight
+          const compress = Math.pow(1 - footfall, 2) * g;
+          model.scale.y = 1 - compress * 0.022;
+          const bulge = 1 + compress * 0.012;
+          model.scale.x = bulge;
+          model.scale.z = bulge;
+
+          // Footfall event: the stride wave changes sign each time a foot lands
+          const sign = Math.sin(t) >= 0 ? 1 : -1;
+          if (isMoving && g > 0.5 && sign !== stepSign.current) {
+            stepSign.current = sign;
+            playFootstep(sign * 0.18);
+
+            // Spawn a golden step ripple under the landing foot
+            const rot = currentRotation.current;
+            const footX = characterPosition.x + Math.cos(rot) * sign * 0.09;
+            const footZ = characterPosition.z - Math.sin(rot) * sign * 0.09;
+            const puff = puffs.current[nextPuff.current];
+            puff.x = footX;
+            puff.z = footZ;
+            puff.age = 0;
+            puff.active = true;
+            nextPuff.current = (nextPuff.current + 1) % PUFF_COUNT;
+          }
         }
+      }
+
+      // Animate the step ripples
+      for (let i = 0; i < PUFF_COUNT; i++) {
+        const puff = puffs.current[i];
+        const mesh = puffMeshes.current[i];
+        if (!mesh) continue;
+        if (!puff.active) {
+          mesh.visible = false;
+          continue;
+        }
+        puff.age += delta;
+        if (puff.age >= PUFF_LIFE) {
+          puff.active = false;
+          mesh.visible = false;
+          continue;
+        }
+        const progress = puff.age / PUFF_LIFE;
+        mesh.visible = true;
+        mesh.position.set(puff.x, 0.016, puff.z);
+        mesh.scale.setScalar(0.08 + progress * 0.24);
+        (mesh.material as THREE.MeshBasicMaterial).opacity = 0.4 * (1 - progress);
       }
     }
   });
@@ -132,17 +220,32 @@ export const Character = () => {
   if (isAmplified) return null; // Hide character when zoomed in
 
   return (
-    <group ref={groupRef} position={[characterPosition.x, 0, characterPosition.z]}>
-      {/* Businessman 3D Model - larger and straight */}
-      <group ref={modelRef}>
-        <primitive 
-          object={clonedScene} 
-          scale={2.2}
-          position={[0, 0, 0]}
-          rotation={[0, -Math.PI / 2, 0]}
-        />
+    <>
+      <group ref={groupRef} position={[characterPosition.x, 0, characterPosition.z]}>
+        {/* Businessman 3D Model - larger and straight */}
+        <group ref={modelRef}>
+          <primitive
+            object={clonedScene}
+            scale={2.2}
+            position={[0, 0, 0]}
+            rotation={[0, -Math.PI / 2, 0]}
+          />
+        </group>
       </group>
-    </group>
+
+      {/* Golden step-ripple pool (world space — ripples stay where feet land) */}
+      {Array.from({ length: PUFF_COUNT }, (_, i) => (
+        <mesh
+          key={`puff-${i}`}
+          ref={(mesh) => { puffMeshes.current[i] = mesh; }}
+          rotation={[-Math.PI / 2, 0, 0]}
+          visible={false}
+        >
+          <ringGeometry args={[0.7, 1, 24]} />
+          <meshBasicMaterial color="#e3bd6a" transparent opacity={0} depthWrite={false} />
+        </mesh>
+      ))}
+    </>
   );
 };
 
