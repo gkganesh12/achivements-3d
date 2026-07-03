@@ -1,9 +1,10 @@
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Text } from '@react-three/drei';
 import { useStore } from '../store/useStore';
 import type { ExhibitData } from '../store/useStore';
+import { GOLD_PROPS } from './Decor';
 
 const ACTIVATION_RADIUS = 0.6;
 
@@ -101,7 +102,7 @@ export const ProfileActivationCircle = () => {
     <group position={[circleX, 0.01, circleZ]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[0.5, 0.55, 32]} />
-        <meshBasicMaterial color="#000000" transparent opacity={isProfileActive ? 0.5 : 0.3} />
+        <meshBasicMaterial color="#d4af37" transparent opacity={isProfileActive ? 0.95 : 0.7} />
       </mesh>
     </group>
   );
@@ -139,6 +140,23 @@ export const Picture = ({ exhibit }: { exhibit: ExhibitData }) => {
         <boxGeometry args={[1.5, 2.4, 0.05]} />
         <meshStandardMaterial color="#000000" roughness={0.6} metalness={0.1} />
       </mesh>
+
+      {/* Brass gallery lamp above the frame */}
+      <group position={[0, 1.34, 0.02]}>
+        <mesh position={[0, 0.03, 0.07]} rotation={[Math.PI / 4, 0, 0]}>
+          <cylinderGeometry args={[0.011, 0.011, 0.24, 8]} />
+          <meshStandardMaterial {...GOLD_PROPS} />
+        </mesh>
+        <mesh position={[0, -0.06, 0.16]} rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.032, 0.032, 0.6, 14, 1]} />
+          <meshStandardMaterial {...GOLD_PROPS} />
+        </mesh>
+        {/* warm underglow washing the top of the frame */}
+        <mesh position={[0, -0.32, 0.09]} rotation={[-0.18, 0, 0]}>
+          <planeGeometry args={[1.34, 0.55]} />
+          <meshBasicMaterial color="#ffd9a0" transparent opacity={0.14} depthWrite={false} />
+        </mesh>
+      </group>
       
       {/* White inner */}
       <mesh position={[0, 0, 0.03]}>
@@ -188,45 +206,68 @@ export const Picture = ({ exhibit }: { exhibit: ExhibitData }) => {
   );
 };
 
+// Gold stanchions with sagging red velvet ropes
 export const RopeBarrier = ({ startX, startZ, endX, endZ, bold = false }: { startX: number; startZ: number; endX: number; endZ: number; bold?: boolean }) => {
-  const length = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endZ - startZ, 2));
-  const angle = Math.atan2(endX - startX, endZ - startZ);
-  
-  // Calculate number of posts (one every ~0.8 units)
-  const numPosts = Math.max(2, Math.floor(length / 0.8) + 1);
-  
-  const posts = [];
-  for (let i = 0; i < numPosts; i++) {
-    const t = i / (numPosts - 1);
-    const postX = startX + (endX - startX) * t;
-    const postZ = startZ + (endZ - startZ) * t;
-    posts.push({ x: postX, z: postZ });
-  }
-  
-  // Bold dimensions for profile wall - slightly smaller
-  const postRadius = bold ? 0.035 : 0.018;
-  const postHeight = bold ? 0.9 : 0.8;
-  const railingThickness = bold ? 0.03 : 0.018;
-  const postY = 0.4; // Start from floor level
-  const railingY = bold ? 0.85 : 0.8; // Top of posts
-  
+  const { posts, ropeGeometries } = useMemo(() => {
+    const length = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endZ - startZ, 2));
+    const spacing = bold ? 1.15 : 1.6;
+    const numPosts = Math.max(2, Math.round(length / spacing) + 1);
+
+    const posts: { x: number; z: number }[] = [];
+    for (let i = 0; i < numPosts; i++) {
+      const t = i / (numPosts - 1);
+      posts.push({ x: startX + (endX - startX) * t, z: startZ + (endZ - startZ) * t });
+    }
+
+    const ropeY = bold ? 0.78 : 0.72;
+    const sag = bold ? 0.1 : 0.13;
+    const ropeRadius = bold ? 0.028 : 0.022;
+    const ropeGeometries = posts.slice(0, -1).map((post, i) => {
+      const next = posts[i + 1];
+      const a = new THREE.Vector3(post.x, ropeY, post.z);
+      const b = new THREE.Vector3(next.x, ropeY, next.z);
+      const mid = a.clone().add(b).multiplyScalar(0.5);
+      mid.y -= sag;
+      const curve = new THREE.QuadraticBezierCurve3(a, mid, b);
+      return new THREE.TubeGeometry(curve, 14, ropeRadius, 8, false);
+    });
+    return { posts, ropeGeometries };
+  }, [startX, startZ, endX, endZ, bold]);
+
+  const postRadius = bold ? 0.03 : 0.022;
+  const postHeight = bold ? 0.82 : 0.76;
+
   return (
     <group>
-      {/* Vertical posts */}
       {posts.map((post, i) => (
-        <group key={i}>
-          <mesh position={[post.x, postY, post.z]}>
-            <cylinderGeometry args={[postRadius, postRadius, postHeight, 8]} />
-            <meshBasicMaterial color="#000000" />
+        <group key={i} position={[post.x, 0, post.z]}>
+          {/* weighted base */}
+          <mesh position={[0, 0.02, 0]}>
+            <cylinderGeometry args={[postRadius * 3.4, postRadius * 4, 0.045, 16]} />
+            <meshStandardMaterial {...GOLD_PROPS} />
+          </mesh>
+          {/* pole */}
+          <mesh position={[0, postHeight / 2, 0]}>
+            <cylinderGeometry args={[postRadius, postRadius, postHeight, 10]} />
+            <meshStandardMaterial {...GOLD_PROPS} />
+          </mesh>
+          {/* collar under the finial */}
+          <mesh position={[0, postHeight - 0.015, 0]}>
+            <cylinderGeometry args={[postRadius * 1.7, postRadius * 1.7, 0.02, 12]} />
+            <meshStandardMaterial {...GOLD_PROPS} />
+          </mesh>
+          {/* finial ball */}
+          <mesh position={[0, postHeight + 0.045, 0]}>
+            <sphereGeometry args={[postRadius * 2.1, 16, 16]} />
+            <meshStandardMaterial {...GOLD_PROPS} />
           </mesh>
         </group>
       ))}
-      
-      {/* Horizontal railing - positioned at top of posts */}
-      <mesh position={[(startX + endX) / 2, railingY, (startZ + endZ) / 2]} rotation={[0, angle, 0]}>
-        <boxGeometry args={[railingThickness, railingThickness, length]} />
-        <meshBasicMaterial color="#000000" />
-      </mesh>
+      {ropeGeometries.map((geometry, i) => (
+        <mesh key={`rope-${i}`} geometry={geometry}>
+          <meshStandardMaterial color="#8f1024" roughness={0.9} metalness={0.05} />
+        </mesh>
+      ))}
     </group>
   );
 };
